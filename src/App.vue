@@ -25,7 +25,7 @@
                     </svg>
                 </button>
                 <div class="header-text">
-                    <h1 class="app-title">บัตรคำไทย กฎหมายไทย</h1>
+                    <h1 class="app-title">Thai Law Flashcards</h1>
                     <p class="app-subtitle">Thai Law Flashcards</p>
                 </div>
             </div>
@@ -150,7 +150,7 @@
 
         <!-- Footer -->
         <footer class="app-footer">
-            <p>เรียนรู้กฎหมายไทยผ่านบัตรคำ</p>
+            <p>สำนักกฎหมายธนธรรม ทนายธาตรี ธนธรรมสุนทร เฟซจริง</p>
         </footer>
     </div>
 </template>
