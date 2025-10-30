@@ -165,8 +165,20 @@ import type { Flashcard } from "./types/flashcard";
 // Category Management
 const selectedCategory = ref<string | null>(null);
 
-// Get unique categories from flashcards
-const categoryList = computed(() => {
+// Helper function to map Thai category names to English and icons
+const getCategoryInfo = (
+    categoryTh: string,
+): { nameEn: string; icon: string } => {
+    const mapping: Record<string, { nameEn: string; icon: string }> = {
+        กฎหมายแพ่ง: { nameEn: "Civil & Commercial Law", icon: "⚖️" },
+        กฎหมายอาญา: { nameEn: "Criminal Law", icon: "🔨" },
+        กฎหมายครอบครัว: { nameEn: "Family Law", icon: "👨‍👩‍👧‍👦" },
+    };
+    return mapping[categoryTh] || { nameEn: categoryTh, icon: "📚" };
+};
+
+// Get unique categories from flashcards (computed once since flashcards is static)
+const categoryList = (() => {
     const categoryMap = new Map<
         string,
         { nameTh: string; nameEn: string; icon: string; count: number }
@@ -195,19 +207,7 @@ const categoryList = computed(() => {
         id,
         ...info,
     }));
-});
-
-// Helper function to map Thai category names to English and icons
-const getCategoryInfo = (
-    categoryTh: string,
-): { nameEn: string; icon: string } => {
-    const mapping: Record<string, { nameEn: string; icon: string }> = {
-        กฎหมายแพ่ง: { nameEn: "Civil & Commercial Law", icon: "⚖️" },
-        กฎหมายอาญา: { nameEn: "Criminal Law", icon: "🔨" },
-        กฎหมายครอบครัว: { nameEn: "Family Law", icon: "👨‍👩‍👧‍👦" },
-    };
-    return mapping[categoryTh] || { nameEn: categoryTh, icon: "📚" };
-};
+})();
 
 // State
 const cards = ref<Flashcard[]>([...flashcards]);
