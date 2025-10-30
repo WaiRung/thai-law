@@ -14,7 +14,13 @@ const API_CONFIG = {
  * @throws Error if validation fails
  */
 function validateQuestion(question: any): asserts question is Flashcard {
-  if (typeof question.id !== 'number' || !question.question || !question.answer) {
+  if (
+    typeof question.id !== 'number' ||
+    typeof question.question !== 'string' ||
+    typeof question.answer !== 'string' ||
+    !question.question.trim() ||
+    !question.answer.trim()
+  ) {
     throw new Error('Invalid question structure in API response');
   }
 }
@@ -25,7 +31,17 @@ function validateQuestion(question: any): asserts question is Flashcard {
  * @throws Error if validation fails
  */
 function validateCategory(category: any): asserts category is CategoryStore {
-  if (!category.id || !category.nameTh || !category.nameEn || !category.icon || !Array.isArray(category.questions)) {
+  if (
+    typeof category.id !== 'string' ||
+    typeof category.nameTh !== 'string' ||
+    typeof category.nameEn !== 'string' ||
+    typeof category.icon !== 'string' ||
+    !category.id.trim() ||
+    !category.nameTh.trim() ||
+    !category.nameEn.trim() ||
+    !category.icon.trim() ||
+    !Array.isArray(category.questions)
+  ) {
     throw new Error('Invalid category structure in API response');
   }
   
