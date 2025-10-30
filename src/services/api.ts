@@ -14,14 +14,14 @@ const API_CONFIG = {
  * @throws Error if validation fails
  */
 function validateQuestion(question: any): asserts question is Flashcard {
-  if (
-    typeof question.id !== 'number' ||
-    typeof question.question !== 'string' ||
-    typeof question.answer !== 'string' ||
-    !question.question.trim() ||
-    !question.answer.trim()
-  ) {
-    throw new Error('Invalid question structure in API response');
+  if (typeof question.id !== 'number') {
+    throw new Error('Invalid question structure: id must be a number');
+  }
+  if (typeof question.question !== 'string' || !question.question.trim()) {
+    throw new Error('Invalid question structure: question must be a non-empty string');
+  }
+  if (typeof question.answer !== 'string' || !question.answer.trim()) {
+    throw new Error('Invalid question structure: answer must be a non-empty string');
   }
 }
 
@@ -31,18 +31,20 @@ function validateQuestion(question: any): asserts question is Flashcard {
  * @throws Error if validation fails
  */
 function validateCategory(category: any): asserts category is CategoryStore {
-  if (
-    typeof category.id !== 'string' ||
-    typeof category.nameTh !== 'string' ||
-    typeof category.nameEn !== 'string' ||
-    typeof category.icon !== 'string' ||
-    !category.id.trim() ||
-    !category.nameTh.trim() ||
-    !category.nameEn.trim() ||
-    !category.icon.trim() ||
-    !Array.isArray(category.questions)
-  ) {
-    throw new Error('Invalid category structure in API response');
+  if (typeof category.id !== 'string' || !category.id.trim()) {
+    throw new Error('Invalid category structure: id must be a non-empty string');
+  }
+  if (typeof category.nameTh !== 'string' || !category.nameTh.trim()) {
+    throw new Error('Invalid category structure: nameTh must be a non-empty string');
+  }
+  if (typeof category.nameEn !== 'string' || !category.nameEn.trim()) {
+    throw new Error('Invalid category structure: nameEn must be a non-empty string');
+  }
+  if (typeof category.icon !== 'string' || !category.icon.trim()) {
+    throw new Error('Invalid category structure: icon must be a non-empty string');
+  }
+  if (!Array.isArray(category.questions)) {
+    throw new Error('Invalid category structure: questions must be an array');
   }
   
   // Validate each question in the category
