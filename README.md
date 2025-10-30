@@ -2,12 +2,15 @@
 
 An interactive flashcard application for learning Thai Law, built with Vue 3, TypeScript, and Tailwind CSS, optimized for mobile devices.
 
+**✨ Now available as a Progressive Web App (PWA)!** Install it on your device and use it offline.
+
 ![Desktop View](https://github.com/user-attachments/assets/2234c1ab-f9e8-4a6c-8a70-959ce4eb3248)
 ![Mobile View](https://github.com/user-attachments/assets/50a4f2f1-08e5-4ad5-b3c2-80e6c92bca92)
 ![Flipped Card](https://github.com/user-attachments/assets/5c83e72a-e72f-4363-a491-edaddff83845)
 
 ## Features ✨
 
+### Core Features
 - **Interactive Flashcards**: Tap/click to flip cards and reveal answers
 - **Progress Tracking**: Visual progress bar and completion counter
 - **Navigation Controls**: Move forward, backward, or shuffle cards
@@ -19,12 +22,23 @@ An interactive flashcard application for learning Thai Law, built with Vue 3, Ty
   - Criminal Law (กฎหมายอาญา)
   - Family Law (กฎหมายครอบครัว)
 
+### PWA Features 📱
+- **Installable**: Add to home screen on mobile and desktop
+- **Offline Support**: Works without internet connection
+- **Auto-Updates**: Seamlessly updates in the background
+- **Fast Loading**: Instant startup from home screen
+- **Native-Like**: Full-screen standalone experience
+
+See [PWA.md](PWA.md) for detailed PWA features and installation instructions.
+
 ## Tech Stack 🛠️
 
 - **Vue 3** - Progressive JavaScript framework
 - **TypeScript** - Type-safe development
 - **Tailwind CSS v4** - Utility-first CSS framework
 - **Vite** - Fast build tool and dev server
+- **Vite PWA Plugin** - Progressive Web App capabilities
+- **Workbox** - Service worker and offline caching
 
 ## Getting Started 🚀
 
