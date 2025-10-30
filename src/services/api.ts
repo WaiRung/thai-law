@@ -17,11 +17,17 @@ function validateQuestion(question: any): asserts question is Flashcard {
   if (typeof question.id !== 'number') {
     throw new Error('Invalid question structure: id must be a number');
   }
-  if (typeof question.question !== 'string' || !question.question.trim()) {
-    throw new Error('Invalid question structure: question must be a non-empty string');
+  if (typeof question.question !== 'string') {
+    throw new Error('Invalid question structure: question must be a string');
   }
-  if (typeof question.answer !== 'string' || !question.answer.trim()) {
-    throw new Error('Invalid question structure: answer must be a non-empty string');
+  if (!question.question.trim()) {
+    throw new Error('Invalid question structure: question cannot be empty');
+  }
+  if (typeof question.answer !== 'string') {
+    throw new Error('Invalid question structure: answer must be a string');
+  }
+  if (!question.answer.trim()) {
+    throw new Error('Invalid question structure: answer cannot be empty');
   }
 }
 
@@ -31,17 +37,29 @@ function validateQuestion(question: any): asserts question is Flashcard {
  * @throws Error if validation fails
  */
 function validateCategory(category: any): asserts category is CategoryStore {
-  if (typeof category.id !== 'string' || !category.id.trim()) {
-    throw new Error('Invalid category structure: id must be a non-empty string');
+  if (typeof category.id !== 'string') {
+    throw new Error('Invalid category structure: id must be a string');
   }
-  if (typeof category.nameTh !== 'string' || !category.nameTh.trim()) {
-    throw new Error('Invalid category structure: nameTh must be a non-empty string');
+  if (!category.id.trim()) {
+    throw new Error('Invalid category structure: id cannot be empty');
   }
-  if (typeof category.nameEn !== 'string' || !category.nameEn.trim()) {
-    throw new Error('Invalid category structure: nameEn must be a non-empty string');
+  if (typeof category.nameTh !== 'string') {
+    throw new Error('Invalid category structure: nameTh must be a string');
   }
-  if (typeof category.icon !== 'string' || !category.icon.trim()) {
-    throw new Error('Invalid category structure: icon must be a non-empty string');
+  if (!category.nameTh.trim()) {
+    throw new Error('Invalid category structure: nameTh cannot be empty');
+  }
+  if (typeof category.nameEn !== 'string') {
+    throw new Error('Invalid category structure: nameEn must be a string');
+  }
+  if (!category.nameEn.trim()) {
+    throw new Error('Invalid category structure: nameEn cannot be empty');
+  }
+  if (typeof category.icon !== 'string') {
+    throw new Error('Invalid category structure: icon must be a string');
+  }
+  if (!category.icon.trim()) {
+    throw new Error('Invalid category structure: icon cannot be empty');
   }
   if (!Array.isArray(category.questions)) {
     throw new Error('Invalid category structure: questions must be an array');
