@@ -43,6 +43,20 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
       throw new Error('Invalid API response: expected array of categories');
     }
 
+    // Validate each category structure
+    for (const category of data) {
+      if (!category.id || !category.nameTh || !category.nameEn || !category.icon || !Array.isArray(category.questions)) {
+        throw new Error('Invalid category structure in API response');
+      }
+      
+      // Validate each question in the category
+      for (const question of category.questions) {
+        if (typeof question.id !== 'number' || !question.question || !question.answer) {
+          throw new Error('Invalid question structure in API response');
+        }
+      }
+    }
+
     return data as CategoryStore[];
   } catch (error) {
     clearTimeout(timeoutId);
@@ -84,6 +98,19 @@ export async function fetchCategoryById(categoryId: string): Promise<CategorySto
     }
 
     const data = await response.json();
+    
+    // Validate category structure
+    if (!data.id || !data.nameTh || !data.nameEn || !data.icon || !Array.isArray(data.questions)) {
+      throw new Error('Invalid category structure in API response');
+    }
+    
+    // Validate each question
+    for (const question of data.questions) {
+      if (typeof question.id !== 'number' || !question.question || !question.answer) {
+        throw new Error('Invalid question structure in API response');
+      }
+    }
+    
     return data as CategoryStore;
   } catch (error) {
     clearTimeout(timeoutId);
