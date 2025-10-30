@@ -48,7 +48,6 @@ const handleFlip = () => {
 .flashcard-container {
     perspective: 1000px;
     width: 100%;
-    height: 100%;
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -57,7 +56,6 @@ const handleFlip = () => {
 .flashcard {
     position: relative;
     width: 100%;
-    height: 100%;
     transition: transform 0.6s;
     transform-style: preserve-3d;
 }
@@ -67,9 +65,8 @@ const handleFlip = () => {
 }
 
 .flashcard-face {
-    position: absolute;
     width: 100%;
-    height: 100%;
+    min-height: 400px;
     backface-visibility: hidden;
     border-radius: 1rem;
     display: flex;
@@ -90,6 +87,9 @@ const handleFlip = () => {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     color: white;
     transform: rotateY(180deg);
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .card-content {
@@ -115,6 +115,8 @@ const handleFlip = () => {
     line-height: 1.6;
     text-align: center;
     font-weight: 500;
+    word-wrap: break-word;
+    max-width: 100%;
 }
 
 .card-category {
@@ -136,6 +138,7 @@ const handleFlip = () => {
 @media (max-width: 640px) {
     .flashcard-face {
         padding: 1.5rem;
+        min-height: 350px;
     }
 
     .card-label {

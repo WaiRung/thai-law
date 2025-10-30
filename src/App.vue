@@ -265,9 +265,7 @@ const resetProgress = () => {
 }
 
 .flashcard-wrapper {
-    flex: 1;
-    min-height: 400px;
-    height: 500px;
+    width: 100%;
     margin-bottom: 1.5rem;
 }
 
@@ -386,8 +384,7 @@ const resetProgress = () => {
     }
 
     .flashcard-wrapper {
-        min-height: 350px;
-        height: 400px;
+        width: 100%;
     }
 
     .controls {
