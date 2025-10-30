@@ -31,7 +31,7 @@ An interactive flashcard application for learning Thai Law, built with Vue 3, Ty
 ### Prerequisites
 
 - Node.js (v22 or higher)
-- npm or yarn
+- yarn
 
 ### Installation
 
@@ -43,12 +43,12 @@ cd thai-law-flashcard
 
 2. Install dependencies:
 ```bash
-npm install
+yarn install
 ```
 
 3. Start the development server:
 ```bash
-npm run dev
+yarn dev
 ```
 
 4. Open your browser and navigate to `http://localhost:5173`
@@ -56,7 +56,7 @@ npm run dev
 ### Build for Production
 
 ```bash
-npm run build
+yarn build
 ```
 
 The built files will be in the `dist` directory.
@@ -64,7 +64,7 @@ The built files will be in the `dist` directory.
 ### Preview Production Build
 
 ```bash
-npm run preview
+yarn preview
 ```
 
 ## Project Structure 📁
