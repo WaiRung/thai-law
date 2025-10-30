@@ -1,10 +1,10 @@
-import type { CategoryStore, Flashcard } from '../types/flashcard';
+import type { CategoryStore, Flashcard } from "../types/flashcard";
 
 /**
  * API Configuration
  */
 const API_CONFIG = {
-  baseUrl: import.meta.env.VITE_API_BASE_URL || '',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || "",
   timeout: 10000, // 10 seconds
 };
 
@@ -14,20 +14,20 @@ const API_CONFIG = {
  * @throws Error if validation fails
  */
 function validateQuestion(question: any): asserts question is Flashcard {
-  if (typeof question.id !== 'number') {
-    throw new Error('Invalid question structure: id must be a number');
+  if (typeof question.id !== "string") {
+    throw new Error("Invalid question structure: id must be a string");
   }
-  if (typeof question.question !== 'string') {
-    throw new Error('Invalid question structure: question must be a string');
+  if (typeof question.question !== "string") {
+    throw new Error("Invalid question structure: question must be a string");
   }
   if (!question.question.trim()) {
-    throw new Error('Invalid question structure: question cannot be empty');
+    throw new Error("Invalid question structure: question cannot be empty");
   }
-  if (typeof question.answer !== 'string') {
-    throw new Error('Invalid question structure: answer must be a string');
+  if (typeof question.answer !== "string") {
+    throw new Error("Invalid question structure: answer must be a string");
   }
   if (!question.answer.trim()) {
-    throw new Error('Invalid question structure: answer cannot be empty');
+    throw new Error("Invalid question structure: answer cannot be empty");
   }
 }
 
@@ -37,34 +37,34 @@ function validateQuestion(question: any): asserts question is Flashcard {
  * @throws Error if validation fails
  */
 function validateCategory(category: any): asserts category is CategoryStore {
-  if (typeof category.id !== 'string') {
-    throw new Error('Invalid category structure: id must be a string');
+  if (typeof category.id !== "string") {
+    throw new Error("Invalid category structure: id must be a string");
   }
   if (!category.id.trim()) {
-    throw new Error('Invalid category structure: id cannot be empty');
+    throw new Error("Invalid category structure: id cannot be empty");
   }
-  if (typeof category.nameTh !== 'string') {
-    throw new Error('Invalid category structure: nameTh must be a string');
+  if (typeof category.nameTh !== "string") {
+    throw new Error("Invalid category structure: nameTh must be a string");
   }
   if (!category.nameTh.trim()) {
-    throw new Error('Invalid category structure: nameTh cannot be empty');
+    throw new Error("Invalid category structure: nameTh cannot be empty");
   }
-  if (typeof category.nameEn !== 'string') {
-    throw new Error('Invalid category structure: nameEn must be a string');
+  if (typeof category.nameEn !== "string") {
+    throw new Error("Invalid category structure: nameEn must be a string");
   }
   if (!category.nameEn.trim()) {
-    throw new Error('Invalid category structure: nameEn cannot be empty');
+    throw new Error("Invalid category structure: nameEn cannot be empty");
   }
-  if (typeof category.icon !== 'string') {
-    throw new Error('Invalid category structure: icon must be a string');
+  if (typeof category.icon !== "string") {
+    throw new Error("Invalid category structure: icon must be a string");
   }
   if (!category.icon.trim()) {
-    throw new Error('Invalid category structure: icon cannot be empty');
+    throw new Error("Invalid category structure: icon cannot be empty");
   }
   if (!Array.isArray(category.questions)) {
-    throw new Error('Invalid category structure: questions must be an array');
+    throw new Error("Invalid category structure: questions must be an array");
   }
-  
+
   // Validate each question in the category
   for (const question of category.questions) {
     validateQuestion(question);
@@ -79,7 +79,7 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
   // If no API URL is configured, return empty array
   // This allows the app to fall back to static data
   if (!API_CONFIG.baseUrl) {
-    throw new Error('API_BASE_URL not configured');
+    throw new Error("API_BASE_URL not configured");
   }
 
   const controller = new AbortController();
@@ -89,7 +89,7 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
     const response = await fetch(`${API_CONFIG.baseUrl}/categories`, {
       signal: controller.signal,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -100,10 +100,11 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
     }
 
     const data = await response.json();
-    
+    console.log(data);
+
     // Validate response data
     if (!Array.isArray(data)) {
-      throw new Error('Invalid API response: expected array of categories');
+      throw new Error("Invalid API response: expected array of categories");
     }
 
     // Validate each category structure
@@ -115,12 +116,12 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        throw new Error('API request timeout');
+      if (error.name === "AbortError") {
+        throw new Error("API request timeout");
       }
       throw error;
     }
-    throw new Error('Unknown error occurred while fetching categories');
+    throw new Error("Unknown error occurred while fetching categories");
   }
 }
 
@@ -129,21 +130,26 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
  * @param categoryId - The ID of the category to fetch
  * @returns Promise with CategoryStore
  */
-export async function fetchCategoryById(categoryId: string): Promise<CategoryStore> {
+export async function fetchCategoryById(
+  categoryId: string,
+): Promise<CategoryStore> {
   if (!API_CONFIG.baseUrl) {
-    throw new Error('API_BASE_URL not configured');
+    throw new Error("API_BASE_URL not configured");
   }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/categories/${encodeURIComponent(categoryId)}`, {
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${API_CONFIG.baseUrl}/categories/${encodeURIComponent(categoryId)}`,
+      {
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
     clearTimeout(timeoutId);
 
@@ -152,19 +158,19 @@ export async function fetchCategoryById(categoryId: string): Promise<CategorySto
     }
 
     const data = await response.json();
-    
+
     // Validate category structure
     validateCategory(data);
-    
+
     return data;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        throw new Error('API request timeout');
+      if (error.name === "AbortError") {
+        throw new Error("API request timeout");
       }
       throw error;
     }
-    throw new Error('Unknown error occurred while fetching category');
+    throw new Error("Unknown error occurred while fetching category");
   }
 }
