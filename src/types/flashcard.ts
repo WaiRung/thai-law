@@ -2,7 +2,6 @@ export interface Flashcard {
   id: number;
   question: string;
   answer: string;
-  category?: string;
 }
 
 export interface CategoryStore {

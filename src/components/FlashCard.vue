@@ -5,9 +5,6 @@
                 <div class="card-content">
                     <div class="card-label">คำถาม</div>
                     <div class="card-text">{{ card.question }}</div>
-                    <div v-if="card.category" class="card-category">
-                        {{ card.category }}
-                    </div>
                 </div>
                 <div class="tap-hint">แตะเพื่อดูคำตอบ</div>
             </div>
@@ -15,9 +12,6 @@
                 <div class="card-content">
                     <div class="card-label">คำตอบ</div>
                     <div class="card-text">{{ card.answer }}</div>
-                    <div v-if="card.category" class="card-category">
-                        {{ card.category }}
-                    </div>
                 </div>
                 <div class="tap-hint">แตะเพื่อดูคำถาม</div>
             </div>
