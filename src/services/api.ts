@@ -1,0 +1,98 @@
+import type { CategoryStore } from '../types/flashcard';
+
+/**
+ * API Configuration
+ */
+const API_CONFIG = {
+  baseUrl: import.meta.env.VITE_API_BASE_URL || '',
+  timeout: 10000, // 10 seconds
+};
+
+/**
+ * Fetch categories from API
+ * @returns Promise with array of CategoryStore
+ */
+export async function fetchCategories(): Promise<CategoryStore[]> {
+  // If no API URL is configured, return empty array
+  // This allows the app to fall back to static data
+  if (!API_CONFIG.baseUrl) {
+    throw new Error('API_BASE_URL not configured');
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+
+  try {
+    const response = await fetch(`${API_CONFIG.baseUrl}/categories`, {
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Validate response data
+    if (!Array.isArray(data)) {
+      throw new Error('Invalid API response: expected array of categories');
+    }
+
+    return data as CategoryStore[];
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error('API request timeout');
+      }
+      throw error;
+    }
+    throw new Error('Unknown error occurred while fetching categories');
+  }
+}
+
+/**
+ * Fetch a specific category by ID
+ * @param categoryId - The ID of the category to fetch
+ * @returns Promise with CategoryStore
+ */
+export async function fetchCategoryById(categoryId: string): Promise<CategoryStore> {
+  if (!API_CONFIG.baseUrl) {
+    throw new Error('API_BASE_URL not configured');
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+
+  try {
+    const response = await fetch(`${API_CONFIG.baseUrl}/categories/${encodeURIComponent(categoryId)}`, {
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data as CategoryStore;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error('API request timeout');
+      }
+      throw error;
+    }
+    throw new Error('Unknown error occurred while fetching category');
+  }
+}

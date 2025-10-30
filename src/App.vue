@@ -33,7 +33,14 @@
 
         <!-- Main Content -->
         <main class="main-content" v-if="!selectedCategory">
+            <LoadingSpinner v-if="isLoading" message="กำลังโหลดหมวดหมู่..." />
+            <ErrorMessage
+                v-else-if="error"
+                :message="error"
+                @retry="loadCategories"
+            />
             <CategorySelection
+                v-else
                 :categories="categoryList"
                 @select="selectCategory"
             />
@@ -156,23 +163,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import FlashCard from "./components/FlashCard.vue";
 import CategorySelection from "./components/CategorySelection.vue";
+import LoadingSpinner from "./components/LoadingSpinner.vue";
+import ErrorMessage from "./components/ErrorMessage.vue";
 import { categoryStores } from "./data/categoryStores";
-import type { Flashcard } from "./types/flashcard";
+import { fetchCategories } from "./services/api";
+import type { Flashcard, CategoryStore } from "./types/flashcard";
 
 // Category Management
 const selectedCategory = ref<string | null>(null);
+const categories = ref<CategoryStore[]>([]);
+const isLoading = ref(false);
+const error = ref<string | null>(null);
 
-// Build category list from category stores
-const categoryList = categoryStores.map((store) => ({
-    id: store.id,
-    nameTh: store.nameTh,
-    nameEn: store.nameEn,
-    icon: store.icon,
-    count: store.questions.length,
-}));
+// Build category list from loaded categories
+const categoryList = computed(() =>
+    categories.value.map((store) => ({
+        id: store.id,
+        nameTh: store.nameTh,
+        nameEn: store.nameEn,
+        icon: store.icon,
+        count: store.questions.length,
+    })),
+);
 
 // State
 const cards = ref<Flashcard[]>([]);
@@ -187,11 +202,29 @@ const progressPercentage = computed(
     () => ((currentIndex.value + 1) / totalCards.value) * 100,
 );
 
+// Load categories on component mount
+const loadCategories = async () => {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+        // Try to fetch from API first
+        const apiCategories = await fetchCategories();
+        categories.value = apiCategories;
+    } catch (err) {
+        // Fall back to static data if API fails
+        console.warn('Failed to load categories from API, using static data:', err);
+        categories.value = categoryStores;
+    } finally {
+        isLoading.value = false;
+    }
+};
+
 // Category Selection Methods
 const selectCategory = (categoryId: string) => {
     selectedCategory.value = categoryId;
     // Find the selected category store and load its questions
-    const selectedStore = categoryStores.find(
+    const selectedStore = categories.value.find(
         (store) => store.id === categoryId,
     );
     if (selectedStore) {
@@ -201,6 +234,11 @@ const selectCategory = (categoryId: string) => {
     isFlipped.value = false;
     completedCards.value.clear();
 };
+
+// Initialize categories on mount
+onMounted(() => {
+    loadCategories();
+});
 
 const backToCategories = () => {
     selectedCategory.value = null;
