@@ -165,16 +165,18 @@ import type { Flashcard } from "./types/flashcard";
 // Category Management
 const selectedCategory = ref<string | null>(null);
 
+// Category mapping for Thai to English names and icons
+const CATEGORY_MAPPING: Record<string, { nameEn: string; icon: string }> = {
+    กฎหมายแพ่ง: { nameEn: "Civil & Commercial Law", icon: "⚖️" },
+    กฎหมายอาญา: { nameEn: "Criminal Law", icon: "🔨" },
+    กฎหมายครอบครัว: { nameEn: "Family Law", icon: "👨‍👩‍👧‍👦" },
+};
+
 // Helper function to map Thai category names to English and icons
 const getCategoryInfo = (
     categoryTh: string,
 ): { nameEn: string; icon: string } => {
-    const mapping: Record<string, { nameEn: string; icon: string }> = {
-        กฎหมายแพ่ง: { nameEn: "Civil & Commercial Law", icon: "⚖️" },
-        กฎหมายอาญา: { nameEn: "Criminal Law", icon: "🔨" },
-        กฎหมายครอบครัว: { nameEn: "Family Law", icon: "👨‍👩‍👧‍👦" },
-    };
-    return mapping[categoryTh] || { nameEn: categoryTh, icon: "📚" };
+    return CATEGORY_MAPPING[categoryTh] || { nameEn: categoryTh, icon: "📚" };
 };
 
 // Get unique categories from flashcards (computed once since flashcards is static)
