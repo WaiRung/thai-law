@@ -2,12 +2,44 @@
     <div class="app-container">
         <!-- Header -->
         <header class="app-header">
-            <h1 class="app-title">บัตรคำไทย กฎหมายไทย</h1>
-            <p class="app-subtitle">Thai Law Flashcards</p>
+            <div class="header-content">
+                <button
+                    v-if="selectedCategory"
+                    @click="backToCategories"
+                    class="back-btn"
+                    aria-label="Back to categories"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        class="back-icon"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                        />
+                    </svg>
+                </button>
+                <div class="header-text">
+                    <h1 class="app-title">บัตรคำไทย กฎหมายไทย</h1>
+                    <p class="app-subtitle">Thai Law Flashcards</p>
+                </div>
+            </div>
         </header>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" v-if="!selectedCategory">
+            <CategorySelection
+                :categories="categoryList"
+                @select="selectCategory"
+            />
+        </main>
+
+        <main class="main-content" v-else>
             <!-- Progress Bar -->
             <div class="progress-section">
                 <div class="progress-text">
@@ -126,8 +158,56 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import FlashCard from "./components/FlashCard.vue";
+import CategorySelection from "./components/CategorySelection.vue";
 import { flashcards } from "./data/cards";
 import type { Flashcard } from "./types/flashcard";
+
+// Category Management
+const selectedCategory = ref<string | null>(null);
+
+// Get unique categories from flashcards
+const categoryList = computed(() => {
+    const categoryMap = new Map<
+        string,
+        { nameTh: string; nameEn: string; icon: string; count: number }
+    >();
+
+    // Count cards per category
+    flashcards.forEach((card) => {
+        if (card.category) {
+            const existing = categoryMap.get(card.category);
+            if (existing) {
+                existing.count++;
+            } else {
+                // Map category names to English and icons
+                const categoryInfo = getCategoryInfo(card.category);
+                categoryMap.set(card.category, {
+                    nameTh: card.category,
+                    nameEn: categoryInfo.nameEn,
+                    icon: categoryInfo.icon,
+                    count: 1,
+                });
+            }
+        }
+    });
+
+    return Array.from(categoryMap.entries()).map(([id, info]) => ({
+        id,
+        ...info,
+    }));
+});
+
+// Helper function to map Thai category names to English and icons
+const getCategoryInfo = (
+    categoryTh: string,
+): { nameEn: string; icon: string } => {
+    const mapping: Record<string, { nameEn: string; icon: string }> = {
+        กฎหมายแพ่ง: { nameEn: "Civil & Commercial Law", icon: "⚖️" },
+        กฎหมายอาญา: { nameEn: "Criminal Law", icon: "🔨" },
+        กฎหมายครอบครัว: { nameEn: "Family Law", icon: "👨‍👩‍👧‍👦" },
+    };
+    return mapping[categoryTh] || { nameEn: categoryTh, icon: "📚" };
+};
 
 // State
 const cards = ref<Flashcard[]>([...flashcards]);
@@ -135,12 +215,40 @@ const currentIndex = ref(0);
 const isFlipped = ref(false);
 const completedCards = ref(new Set<number>());
 
+// Filter cards based on selected category
+const filteredCards = computed(() => {
+    if (!selectedCategory.value) {
+        return flashcards;
+    }
+    return flashcards.filter(
+        (card) => card.category === selectedCategory.value,
+    );
+});
+
 // Computed
 const currentCard = computed(() => cards.value[currentIndex.value]);
 const totalCards = computed(() => cards.value.length);
 const progressPercentage = computed(
     () => ((currentIndex.value + 1) / totalCards.value) * 100,
 );
+
+// Category Selection Methods
+const selectCategory = (categoryId: string) => {
+    selectedCategory.value = categoryId;
+    // Reset and load filtered cards
+    cards.value = [...filteredCards.value];
+    currentIndex.value = 0;
+    isFlipped.value = false;
+    completedCards.value.clear();
+};
+
+const backToCategories = () => {
+    selectedCategory.value = null;
+    cards.value = [...flashcards];
+    currentIndex.value = 0;
+    isFlipped.value = false;
+    completedCards.value.clear();
+};
 
 // Methods
 const toggleFlip = () => {
@@ -194,8 +302,50 @@ const resetProgress = () => {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
     padding: 1.5rem 1rem;
-    text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.back-btn {
+    position: absolute;
+    left: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-2px);
+}
+
+.back-btn:active {
+    transform: translateX(0);
+}
+
+.back-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.header-text {
+    text-align: center;
 }
 
 .app-title {
@@ -369,6 +519,19 @@ const resetProgress = () => {
 @media (max-width: 640px) {
     .app-header {
         padding: 1rem 0.75rem;
+    }
+
+    .header-content {
+        gap: 0.5rem;
+    }
+
+    .back-btn {
+        padding: 0.375rem;
+    }
+
+    .back-icon {
+        width: 1.25rem;
+        height: 1.25rem;
     }
 
     .app-title {
