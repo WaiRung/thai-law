@@ -30,7 +30,7 @@ An interactive flashcard application for learning Thai Law, built with Vue 3, Ty
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v22 or higher)
 - npm or yarn
 
 ### Installation
