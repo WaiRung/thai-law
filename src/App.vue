@@ -33,10 +33,18 @@
 
         <!-- Main Content -->
         <main class="main-content" v-if="!selectedCategory">
-            <CategorySelection
-                :categories="categoryList"
-                @select="selectCategory"
-            />
+            <LoadingSpinner v-if="isLoading" message="กำลังโหลดหมวดหมู่..." />
+            <template v-else>
+                <!-- Warning Banner for Fallback -->
+                <div v-if="error && isUsingFallback" class="warning-banner">
+                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-text">{{ error }}</span>
+                </div>
+                <CategorySelection
+                    :categories="categoryList"
+                    @select="selectCategory"
+                />
+            </template>
         </main>
 
         <main class="main-content" v-else>
@@ -156,23 +164,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import FlashCard from "./components/FlashCard.vue";
 import CategorySelection from "./components/CategorySelection.vue";
+import LoadingSpinner from "./components/LoadingSpinner.vue";
 import { categoryStores } from "./data/categoryStores";
-import type { Flashcard } from "./types/flashcard";
+import { fetchCategories } from "./services/api";
+import type { Flashcard, CategoryStore } from "./types/flashcard";
 
 // Category Management
 const selectedCategory = ref<string | null>(null);
+const categories = ref<CategoryStore[]>([]);
+const isLoading = ref(false);
+const error = ref<string | null>(null);
+const isUsingFallback = ref(false);
 
-// Build category list from category stores
-const categoryList = categoryStores.map((store) => ({
-    id: store.id,
-    nameTh: store.nameTh,
-    nameEn: store.nameEn,
-    icon: store.icon,
-    count: store.questions.length,
-}));
+// Build category list from loaded categories
+const categoryList = computed(() =>
+    categories.value.map((store) => ({
+        id: store.id,
+        nameTh: store.nameTh,
+        nameEn: store.nameEn,
+        icon: store.icon,
+        count: store.questions.length,
+    })),
+);
 
 // State
 const cards = ref<Flashcard[]>([]);
@@ -187,11 +203,41 @@ const progressPercentage = computed(
     () => ((currentIndex.value + 1) / totalCards.value) * 100,
 );
 
+// Load categories on component mount
+const loadCategories = async () => {
+    isLoading.value = true;
+    error.value = null;
+    isUsingFallback.value = false;
+
+    try {
+        // Try to fetch from API first
+        const apiCategories = await fetchCategories();
+        categories.value = apiCategories;
+    } catch (err) {
+        // Fall back to static data if API fails
+        console.warn('Failed to load categories from API, using static data:', err);
+        categories.value = categoryStores;
+        isUsingFallback.value = true;
+        
+        // Set a user-friendly message if API was expected but failed
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        if (!errorMessage.includes('not configured')) {
+            error.value = 'ไม่สามารถโหลดข้อมูลจาก API ได้ กำลังใช้ข้อมูลแบบออฟไลน์';
+            // Clear error after 5 seconds so user can continue
+            setTimeout(() => {
+                error.value = null;
+            }, 5000);
+        }
+    } finally {
+        isLoading.value = false;
+    }
+};
+
 // Category Selection Methods
 const selectCategory = (categoryId: string) => {
     selectedCategory.value = categoryId;
     // Find the selected category store and load its questions
-    const selectedStore = categoryStores.find(
+    const selectedStore = categories.value.find(
         (store) => store.id === categoryId,
     );
     if (selectedStore) {
@@ -201,6 +247,11 @@ const selectCategory = (categoryId: string) => {
     isFlipped.value = false;
     completedCards.value.clear();
 };
+
+// Initialize categories on mount
+onMounted(() => {
+    loadCategories();
+});
 
 const backToCategories = () => {
     selectedCategory.value = null;
@@ -474,6 +525,41 @@ const resetProgress = () => {
 
 .app-footer p {
     margin: 0;
+}
+
+.warning-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background-color: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    color: #92400e;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.warning-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.warning-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    flex: 1;
 }
 
 @media (max-width: 640px) {

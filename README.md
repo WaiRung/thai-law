@@ -115,6 +115,18 @@ thai-law-flashcard/
 5. **Track Progress**: Monitor your progress with the progress bar and counter
 6. **Reset**: Use the reset button to clear your progress
 
+## API Integration 🔌
+
+The app supports loading category data from a backend API. See [API.md](API.md) for detailed integration instructions.
+
+**Quick Setup:**
+1. Create a `.env` file with your API URL:
+   ```env
+   VITE_API_BASE_URL=https://your-api-domain.com
+   ```
+2. The app will automatically fetch categories from `GET /categories`
+3. If the API fails or is not configured, the app falls back to static data
+
 ## Customization 🎨
 
 ### Adding New Cards
