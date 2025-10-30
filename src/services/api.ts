@@ -86,7 +86,7 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/categories`, {
+    const response = await fetch(`${API_CONFIG.baseUrl}`, {
       signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
