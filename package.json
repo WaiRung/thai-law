@@ -16,6 +16,9 @@
   ],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "dependencies": {
     "vue": "^3.5.22"
   },
