@@ -5,6 +5,14 @@ export interface Flashcard {
   category?: string;
 }
 
+export interface CategoryStore {
+  id: string;
+  nameTh: string;
+  nameEn: string;
+  icon: string;
+  questions: Flashcard[];
+}
+
 export interface GameState {
   currentIndex: number;
   totalCards: number;
