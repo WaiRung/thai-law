@@ -1,4 +1,4 @@
-import type { CategoryStore } from '../types/flashcard';
+import type { CategoryStore, Flashcard } from '../types/flashcard';
 
 /**
  * API Configuration
@@ -7,6 +7,33 @@ const API_CONFIG = {
   baseUrl: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 10000, // 10 seconds
 };
+
+/**
+ * Validate a flashcard question structure
+ * @param question - The question object to validate
+ * @throws Error if validation fails
+ */
+function validateQuestion(question: any): asserts question is Flashcard {
+  if (typeof question.id !== 'number' || !question.question || !question.answer) {
+    throw new Error('Invalid question structure in API response');
+  }
+}
+
+/**
+ * Validate a category structure
+ * @param category - The category object to validate
+ * @throws Error if validation fails
+ */
+function validateCategory(category: any): asserts category is CategoryStore {
+  if (!category.id || !category.nameTh || !category.nameEn || !category.icon || !Array.isArray(category.questions)) {
+    throw new Error('Invalid category structure in API response');
+  }
+  
+  // Validate each question in the category
+  for (const question of category.questions) {
+    validateQuestion(question);
+  }
+}
 
 /**
  * Fetch categories from API
@@ -45,19 +72,10 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
 
     // Validate each category structure
     for (const category of data) {
-      if (!category.id || !category.nameTh || !category.nameEn || !category.icon || !Array.isArray(category.questions)) {
-        throw new Error('Invalid category structure in API response');
-      }
-      
-      // Validate each question in the category
-      for (const question of category.questions) {
-        if (typeof question.id !== 'number' || !question.question || !question.answer) {
-          throw new Error('Invalid question structure in API response');
-        }
-      }
+      validateCategory(category);
     }
 
-    return data as CategoryStore[];
+    return data;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error) {
@@ -100,18 +118,9 @@ export async function fetchCategoryById(categoryId: string): Promise<CategorySto
     const data = await response.json();
     
     // Validate category structure
-    if (!data.id || !data.nameTh || !data.nameEn || !data.icon || !Array.isArray(data.questions)) {
-      throw new Error('Invalid category structure in API response');
-    }
+    validateCategory(data);
     
-    // Validate each question
-    for (const question of data.questions) {
-      if (typeof question.id !== 'number' || !question.question || !question.answer) {
-        throw new Error('Invalid question structure in API response');
-      }
-    }
-    
-    return data as CategoryStore;
+    return data;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error) {
