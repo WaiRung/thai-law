@@ -87,9 +87,10 @@ yarn preview
 thai-law-flashcard/
 ├── src/
 │   ├── components/
-│   │   └── FlashCard.vue      # Flashcard component with flip animation
+│   │   ├── FlashCard.vue      # Flashcard component with flip animation
+│   │   └── CategorySelection.vue  # Category selection component
 │   ├── data/
-│   │   └── cards.ts           # Flashcard data (Thai law questions)
+│   │   └── categoryStores.ts  # Flashcard data organized by categories
 │   ├── types/
 │   │   └── flashcard.ts       # TypeScript interfaces
 │   ├── App.vue                # Main application component
@@ -118,14 +119,29 @@ thai-law-flashcard/
 
 ### Adding New Cards
 
-Edit `src/data/cards.ts` to add new flashcards:
+Edit `src/data/categoryStores.ts` to add new flashcards to existing categories:
 
 ```typescript
+// Add to an existing category's questions array
 {
   id: 11,
   question: 'Your Thai law question',
   answer: 'Your answer',
-  category: 'Category name'
+  category: 'กฎหมายแพ่ง' // or other category
+}
+```
+
+Or add a new category:
+
+```typescript
+{
+  id: 'new-category-id',
+  nameTh: 'Category name in Thai',
+  nameEn: 'Category name in English',
+  icon: '🎓',
+  questions: [
+    // Add your questions here
+  ]
 }
 ```
 
