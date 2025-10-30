@@ -3,12 +3,11 @@ import './style.css'
 import App from './App.vue'
 import { registerSW } from 'virtual:pwa-register'
 
-// Register service worker
+// Register service worker with auto-update
 const updateSW = registerSW({
   onNeedRefresh() {
-    if (confirm('New content available. Reload?')) {
-      updateSW(true)
-    }
+    // Automatically update to new version for seamless experience
+    updateSW(true)
   },
   onOfflineReady() {
     console.log('App ready to work offline')

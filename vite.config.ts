@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -43,7 +45,7 @@ export default defineConfig({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                maxAgeSeconds: ONE_YEAR_IN_SECONDS
               },
               cacheableResponse: {
                 statuses: [0, 200]
