@@ -159,73 +159,26 @@
 import { ref, computed } from "vue";
 import FlashCard from "./components/FlashCard.vue";
 import CategorySelection from "./components/CategorySelection.vue";
-import { flashcards } from "./data/cards";
+import { categoryStores } from "./data/categoryStores";
 import type { Flashcard } from "./types/flashcard";
 
 // Category Management
 const selectedCategory = ref<string | null>(null);
 
-// Category mapping for Thai to English names and icons
-const CATEGORY_MAPPING: Record<string, { nameEn: string; icon: string }> = {
-    กฎหมายแพ่ง: { nameEn: "Civil & Commercial Law", icon: "⚖️" },
-    กฎหมายอาญา: { nameEn: "Criminal Law", icon: "🔨" },
-    กฎหมายครอบครัว: { nameEn: "Family Law", icon: "👨‍👩‍👧‍👦" },
-};
-
-// Helper function to map Thai category names to English and icons
-const getCategoryInfo = (
-    categoryTh: string,
-): { nameEn: string; icon: string } => {
-    return CATEGORY_MAPPING[categoryTh] || { nameEn: categoryTh, icon: "📚" };
-};
-
-// Get unique categories from flashcards (computed once since flashcards is static)
-const categoryList = (() => {
-    const categoryMap = new Map<
-        string,
-        { nameTh: string; nameEn: string; icon: string; count: number }
-    >();
-
-    // Count cards per category
-    flashcards.forEach((card) => {
-        if (card.category) {
-            const existing = categoryMap.get(card.category);
-            if (existing) {
-                existing.count++;
-            } else {
-                // Map category names to English and icons
-                const categoryInfo = getCategoryInfo(card.category);
-                categoryMap.set(card.category, {
-                    nameTh: card.category,
-                    nameEn: categoryInfo.nameEn,
-                    icon: categoryInfo.icon,
-                    count: 1,
-                });
-            }
-        }
-    });
-
-    return Array.from(categoryMap.entries()).map(([id, info]) => ({
-        id,
-        ...info,
-    }));
-})();
+// Build category list from category stores
+const categoryList = categoryStores.map((store) => ({
+    id: store.id,
+    nameTh: store.nameTh,
+    nameEn: store.nameEn,
+    icon: store.icon,
+    count: store.questions.length,
+}));
 
 // State
-const cards = ref<Flashcard[]>([...flashcards]);
+const cards = ref<Flashcard[]>([]);
 const currentIndex = ref(0);
 const isFlipped = ref(false);
 const completedCards = ref(new Set<number>());
-
-// Filter cards based on selected category
-const filteredCards = computed(() => {
-    if (!selectedCategory.value) {
-        return flashcards;
-    }
-    return flashcards.filter(
-        (card) => card.category === selectedCategory.value,
-    );
-});
 
 // Computed
 const currentCard = computed(() => cards.value[currentIndex.value]);
@@ -237,8 +190,13 @@ const progressPercentage = computed(
 // Category Selection Methods
 const selectCategory = (categoryId: string) => {
     selectedCategory.value = categoryId;
-    // Reset and load filtered cards
-    cards.value = [...filteredCards.value];
+    // Find the selected category store and load its questions
+    const selectedStore = categoryStores.find(
+        (store) => store.id === categoryId,
+    );
+    if (selectedStore) {
+        cards.value = [...selectedStore.questions];
+    }
     currentIndex.value = 0;
     isFlipped.value = false;
     completedCards.value.clear();
@@ -246,7 +204,7 @@ const selectCategory = (categoryId: string) => {
 
 const backToCategories = () => {
     selectedCategory.value = null;
-    cards.value = [...flashcards];
+    cards.value = [];
     currentIndex.value = 0;
     isFlipped.value = false;
     completedCards.value.clear();
