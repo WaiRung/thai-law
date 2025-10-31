@@ -20,7 +20,7 @@ An interactive flashcard application for learning Thai Law, built with Vue 3, Ty
 - **10 Law Topics**: Covers various aspects of Thai law including:
   - Civil and Commercial Law (กฎหมายแพ่ง)
   - Criminal Law (กฎหมายอาญา)
-  - Civil Procedure Code (กฎหมายวิธพิจารณาความแพ่ง)
+  - Civil Procedure Code (กฎหมายวิธีพิจารณาความแพ)
 
 ### PWA Features 📱
 - **Installable**: Add to home screen on mobile and desktop
