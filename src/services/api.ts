@@ -150,7 +150,7 @@ export async function fetchCategoryById(
     }
 
     const data = await response.json();
-
+    console.log(data);
     // Validate category structure
     validateCategory(data);
 
