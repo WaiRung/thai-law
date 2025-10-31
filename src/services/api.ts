@@ -1,6 +1,30 @@
 import type { CategoryStore, Flashcard } from "../types/flashcard";
 
 /**
+ * Complex format interfaces for API data
+ */
+interface Subsection {
+  id: number;
+  content: string;
+}
+
+interface Paragraph {
+  id: number;
+  content: string;
+  subsections?: Subsection[] | null;
+}
+
+interface QuestionContent {
+  paragraphs: Paragraph[];
+}
+
+interface ComplexQuestion {
+  id: string;
+  title: string;
+  content: QuestionContent;
+}
+
+/**
  * API Configuration
  */
 const API_CONFIG = {
@@ -19,11 +43,44 @@ const CATEGORY_FILE_MAP: Record<string, string> = {
 };
 
 /**
- * Validate a flashcard question structure
+ * Map complex format to simple flashcard format
+ * @param complexQuestion - Question in complex format (title + content with paragraphs)
+ * @returns Flashcard in simple format (question + answer)
+ */
+function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
+  // Use title as the question
+  const question = complexQuestion.title;
+
+  // Combine all paragraphs and subsections into the answer
+  const answerParts: string[] = [];
+
+  for (const paragraph of complexQuestion.content.paragraphs) {
+    // Add paragraph content
+    answerParts.push(`§${paragraph.id} ${paragraph.content}`);
+
+    // Add subsections if they exist
+    if (paragraph.subsections && paragraph.subsections.length > 0) {
+      for (const subsection of paragraph.subsections) {
+        answerParts.push(`  (${subsection.id}) ${subsection.content}`);
+      }
+    }
+  }
+
+  const answer = answerParts.join("\n\n");
+
+  return {
+    id: complexQuestion.id,
+    question: question,
+    answer: answer,
+  };
+}
+
+/**
+ * Validate a simple flashcard question structure
  * @param question - The question object to validate
  * @throws Error if validation fails
  */
-function validateQuestion(question: any): asserts question is Flashcard {
+function validateSimpleQuestion(question: any): asserts question is Flashcard {
   if (typeof question.id !== "string") {
     throw new Error("Invalid question structure: id must be a string");
   }
@@ -41,6 +98,64 @@ function validateQuestion(question: any): asserts question is Flashcard {
   }
   if (!question.answer.trim()) {
     throw new Error("Invalid question structure: answer cannot be empty");
+  }
+}
+
+/**
+ * Validate complex format question structure
+ * @param question - The question object to validate in complex format
+ * @throws Error if validation fails
+ */
+function validateComplexQuestion(
+  question: any,
+): asserts question is ComplexQuestion {
+  if (typeof question.id !== "string") {
+    throw new Error("Invalid question structure: id must be a string");
+  }
+  if (!question.id.trim()) {
+    throw new Error("Invalid question structure: id cannot be empty");
+  }
+  if (typeof question.title !== "string") {
+    throw new Error("Invalid question structure: title must be a string");
+  }
+  if (!question.title.trim()) {
+    throw new Error("Invalid question structure: title cannot be empty");
+  }
+  if (typeof question.content !== "object" || question.content === null) {
+    throw new Error("Invalid question structure: content must be an object");
+  }
+  if (!Array.isArray(question.content.paragraphs)) {
+    throw new Error(
+      "Invalid question structure: content.paragraphs must be an array",
+    );
+  }
+
+  // Validate each paragraph
+  for (const paragraph of question.content.paragraphs) {
+    if (typeof paragraph.id !== "number") {
+      throw new Error("Invalid paragraph structure: id must be a number");
+    }
+    if (typeof paragraph.content !== "string") {
+      throw new Error("Invalid paragraph structure: content must be a string");
+    }
+    if (paragraph.subsections !== null && paragraph.subsections !== undefined) {
+      if (!Array.isArray(paragraph.subsections)) {
+        throw new Error(
+          "Invalid paragraph structure: subsections must be an array or null",
+        );
+      }
+      // Validate each subsection
+      for (const subsection of paragraph.subsections) {
+        if (typeof subsection.id !== "number") {
+          throw new Error("Invalid subsection structure: id must be a number");
+        }
+        if (typeof subsection.content !== "string") {
+          throw new Error(
+            "Invalid subsection structure: content must be a string",
+          );
+        }
+      }
+    }
   }
 }
 
@@ -77,65 +192,26 @@ function validateCategory(category: any): asserts category is CategoryStore {
   if (!Array.isArray(category.questions)) {
     throw new Error("Invalid category structure: questions must be an array");
   }
-  // Validate that questions array has the correct structure
+
+  // Validate and transform each question in the category
+  const transformedQuestions: Flashcard[] = [];
   for (const question of category.questions) {
-    // Check if question has the new structure with title and content
+    // Check if question is in complex format (has title and content)
     if (question.title !== undefined && question.content !== undefined) {
-      // New structure validation
-      if (typeof question.title !== "string") {
-        throw new Error("Invalid question structure: title must be a string");
-      }
-      if (typeof question.content !== "object" || question.content === null) {
-        throw new Error(
-          "Invalid question structure: content must be an object",
-        );
-      }
-      if (!Array.isArray(question.content.paragraphs)) {
-        throw new Error(
-          "Invalid question structure: content.paragraphs must be an array",
-        );
-      }
-      // Validate each paragraph
-      for (const paragraph of question.content.paragraphs) {
-        if (typeof paragraph.id !== "number") {
-          throw new Error("Invalid paragraph structure: id must be a number");
-        }
-        if (typeof paragraph.content !== "string") {
-          throw new Error(
-            "Invalid paragraph structure: content must be a string",
-          );
-        }
-        if (
-          paragraph.subsections !== null &&
-          paragraph.subsections !== undefined
-        ) {
-          if (!Array.isArray(paragraph.subsections)) {
-            throw new Error(
-              "Invalid paragraph structure: subsections must be an array or null",
-            );
-          }
-          // Validate each subsection
-          for (const subsection of paragraph.subsections) {
-            if (typeof subsection.id !== "number") {
-              throw new Error(
-                "Invalid subsection structure: id must be a number",
-              );
-            }
-            if (typeof subsection.content !== "string") {
-              throw new Error(
-                "Invalid subsection structure: content must be a string",
-              );
-            }
-          }
-        }
-      }
+      // Validate complex format
+      validateComplexQuestion(question);
+      // Map complex format to simple format
+      const simpleQuestion = mapComplexToSimpleFormat(question);
+      transformedQuestions.push(simpleQuestion);
+    } else {
+      // Already in simple format, just validate
+      validateSimpleQuestion(question);
+      transformedQuestions.push(question);
     }
   }
 
-  // Validate each question in the category
-  for (const question of category.questions) {
-    validateQuestion(question);
-  }
+  // Replace questions with transformed ones
+  category.questions = transformedQuestions;
 }
 
 /**
