@@ -146,6 +146,7 @@ function validateComplexQuestion(
       }
       // Validate each subsection
       for (const subsection of paragraph.subsections) {
+        console.log(subsection);
         if (typeof subsection.id !== "number") {
           throw new Error("Invalid subsection structure: id must be a number");
         }
