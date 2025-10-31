@@ -11,7 +11,7 @@
             <div class="flashcard-face flashcard-back">
                 <div class="card-content">
                     <div class="card-label">คำตอบ</div>
-                    <div class="card-text">{{ card.answer }}</div>
+                    <div class="answer">{{ card.answer }}</div>
                 </div>
                 <div class="tap-hint">แตะเพื่อดูคำใบ้</div>
             </div>
@@ -108,6 +108,16 @@ const handleFlip = () => {
     font-size: 1.5rem;
     line-height: 1.6;
     text-align: center;
+    font-weight: 500;
+    word-wrap: break-word;
+    max-width: 100%;
+    white-space: pre-wrap;
+}
+
+.card-answer {
+    font-size: 1.5rem;
+    line-height: 1.6;
+    text-align: left;
     font-weight: 500;
     word-wrap: break-word;
     max-width: 100%;
