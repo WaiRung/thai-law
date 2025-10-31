@@ -9,13 +9,23 @@ const API_CONFIG = {
 };
 
 /**
+ * Category ID to filename mapping
+ * Maps Thai category IDs to their corresponding JSON filenames
+ */
+const CATEGORY_FILE_MAP: Record<string, string> = {
+  "กฎหมายแพ่ง": "civil_and_commercial_code",
+  "กฎหมายอาญา": "criminal_law",
+  "กฎหมายครอบครัว": "family_law",
+};
+
+/**
  * Validate a flashcard question structure
  * @param question - The question object to validate
  * @throws Error if validation fails
  */
 function validateQuestion(question: any): asserts question is Flashcard {
-  if (typeof question.id !== "string") {
-    throw new Error("Invalid question structure: id must be a string");
+  if (typeof question.id !== "number") {
+    throw new Error("Invalid question structure: id must be a number");
   }
   if (typeof question.question !== "string") {
     throw new Error("Invalid question structure: question must be a string");
@@ -82,43 +92,17 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
     throw new Error("API_BASE_URL not configured");
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+  // Fetch all categories in parallel
+  const categoryIds = Object.keys(CATEGORY_FILE_MAP);
+  const fetchPromises = categoryIds.map((categoryId) =>
+    fetchCategoryById(categoryId)
+  );
 
   try {
-    const response = await fetch(`${API_CONFIG.baseUrl}`, {
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log(data);
-
-    // Validate response data
-    if (!Array.isArray(data)) {
-      throw new Error("Invalid API response: expected array of categories");
-    }
-
-    // Validate each category structure
-    for (const category of data) {
-      validateCategory(category);
-    }
-
-    return data;
+    const categories = await Promise.all(fetchPromises);
+    return categories;
   } catch (error) {
-    clearTimeout(timeoutId);
     if (error instanceof Error) {
-      if (error.name === "AbortError") {
-        throw new Error("API request timeout");
-      }
       throw error;
     }
     throw new Error("Unknown error occurred while fetching categories");
@@ -137,19 +121,24 @@ export async function fetchCategoryById(
     throw new Error("API_BASE_URL not configured");
   }
 
+  // Get the filename for this category
+  const filename = CATEGORY_FILE_MAP[categoryId];
+  if (!filename) {
+    throw new Error(`Unknown category ID: ${categoryId}`);
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
   try {
-    const response = await fetch(
-      `${API_CONFIG.baseUrl}/categories/${encodeURIComponent(categoryId)}`,
-      {
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-        },
+    // Construct the URL using URL constructor for robust URL building
+    const url = new URL(`${filename}.json`, API_CONFIG.baseUrl).toString();
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+    });
 
     clearTimeout(timeoutId);
 
