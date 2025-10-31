@@ -1,0 +1,284 @@
+import type { CategoryStore, CacheMetadata } from "../types/flashcard";
+
+/**
+ * IndexedDB Database Configuration
+ */
+const DB_NAME = "thai-law-flashcard-db";
+const STORE_NAME = "categories-cache";
+const DB_VERSION = 1;
+const CACHE_VERSION = "1.0";
+
+/**
+ * Cache entry structure stored in IndexedDB
+ */
+interface CacheEntry {
+  id: string;
+  data: CategoryStore[];
+  timestamp: number;
+  version: string;
+  count: number;
+}
+
+/**
+ * Open IndexedDB database
+ * @returns Promise with IDBDatabase
+ */
+function openDatabase(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error("IndexedDB is not supported in this browser"));
+      return;
+    }
+
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onerror = () => {
+      console.error("Failed to open IndexedDB:", request.error);
+      reject(new Error("Failed to open database"));
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      
+      // Create object store if it doesn't exist
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: "id" });
+        console.log("Created IndexedDB object store:", STORE_NAME);
+      }
+    };
+  });
+}
+
+/**
+ * Format date in Thai Buddhist calendar format
+ * @param timestamp - Unix timestamp
+ * @returns Formatted date string (e.g., "31 ต.ค. 2568")
+ */
+function formatThaiDate(timestamp: number): string {
+  const date = new Date(timestamp);
+  const thaiYear = date.getFullYear() + 543;
+  
+  const thaiMonths = [
+    "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+  ];
+  
+  const day = date.getDate();
+  const month = thaiMonths[date.getMonth()];
+  
+  return `${day} ${month} ${thaiYear}`;
+}
+
+/**
+ * Count total questions across all categories
+ * @param categories - Array of category stores
+ * @returns Total number of questions
+ */
+function countTotalQuestions(categories: CategoryStore[]): number {
+  return categories.reduce((total, category) => total + category.questions.length, 0);
+}
+
+/**
+ * Save categories to IndexedDB cache
+ * @param categories - Array of category stores to cache
+ */
+export async function saveCategoriesCache(categories: CategoryStore[]): Promise<void> {
+  try {
+    const db = await openDatabase();
+    
+    const transaction = db.transaction([STORE_NAME], "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    
+    const cacheEntry: CacheEntry = {
+      id: "categories",
+      data: categories,
+      timestamp: Date.now(),
+      version: CACHE_VERSION,
+      count: countTotalQuestions(categories),
+    };
+    
+    const request = store.put(cacheEntry);
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        console.log("Categories cached successfully", {
+          count: cacheEntry.count,
+          categories: categories.length,
+        });
+        resolve();
+      };
+      
+      request.onerror = () => {
+        console.error("Failed to cache categories:", request.error);
+        reject(new Error("Failed to save cache"));
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    });
+  } catch (error) {
+    console.error("Error saving categories cache:", error);
+    throw error;
+  }
+}
+
+/**
+ * Retrieve cached categories from IndexedDB
+ * @returns Promise with cached categories or null if not found
+ */
+export async function getCategoriesCache(): Promise<CategoryStore[] | null> {
+  try {
+    const db = await openDatabase();
+    
+    const transaction = db.transaction([STORE_NAME], "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get("categories");
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        const cacheEntry = request.result as CacheEntry | undefined;
+        
+        if (!cacheEntry) {
+          console.log("No cached categories found");
+          resolve(null);
+          return;
+        }
+        
+        console.log("Loaded categories from cache", {
+          count: cacheEntry.count,
+          categories: cacheEntry.data.length,
+          timestamp: new Date(cacheEntry.timestamp).toISOString(),
+        });
+        
+        resolve(cacheEntry.data);
+      };
+      
+      request.onerror = () => {
+        console.error("Failed to retrieve cache:", request.error);
+        reject(new Error("Failed to retrieve cache"));
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    });
+  } catch (error) {
+    console.error("Error retrieving categories cache:", error);
+    return null; // Return null on error instead of throwing
+  }
+}
+
+/**
+ * Get cache metadata
+ * @returns Promise with cache metadata or null if not found
+ */
+export async function getCacheMetadata(): Promise<CacheMetadata | null> {
+  try {
+    const db = await openDatabase();
+    
+    const transaction = db.transaction([STORE_NAME], "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get("categories");
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        const cacheEntry = request.result as CacheEntry | undefined;
+        
+        if (!cacheEntry) {
+          resolve(null);
+          return;
+        }
+        
+        const metadata: CacheMetadata = {
+          timestamp: cacheEntry.timestamp,
+          lastUpdated: formatThaiDate(cacheEntry.timestamp),
+          count: cacheEntry.count,
+          version: cacheEntry.version,
+        };
+        
+        resolve(metadata);
+      };
+      
+      request.onerror = () => {
+        console.error("Failed to retrieve cache metadata:", request.error);
+        reject(new Error("Failed to retrieve cache metadata"));
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    });
+  } catch (error) {
+    console.error("Error retrieving cache metadata:", error);
+    return null; // Return null on error instead of throwing
+  }
+}
+
+/**
+ * Clear all cached data from IndexedDB
+ */
+export async function clearCache(): Promise<void> {
+  try {
+    const db = await openDatabase();
+    
+    const transaction = db.transaction([STORE_NAME], "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.delete("categories");
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        console.log("Cache cleared successfully");
+        resolve();
+      };
+      
+      request.onerror = () => {
+        console.error("Failed to clear cache:", request.error);
+        reject(new Error("Failed to clear cache"));
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    });
+  } catch (error) {
+    console.error("Error clearing cache:", error);
+    throw error;
+  }
+}
+
+/**
+ * Check if cache exists and is still valid
+ * @param maxAgeInDays - Maximum age of cache in days (default: 7)
+ * @returns Promise with boolean indicating if cache is valid
+ */
+export async function isCacheValid(maxAgeInDays: number = 7): Promise<boolean> {
+  try {
+    const metadata = await getCacheMetadata();
+    
+    if (!metadata) {
+      return false;
+    }
+    
+    const now = Date.now();
+    const maxAgeMs = maxAgeInDays * 24 * 60 * 60 * 1000;
+    const age = now - metadata.timestamp;
+    
+    const isValid = age < maxAgeMs;
+    
+    console.log("Cache validity check", {
+      isValid,
+      age: Math.round(age / (1000 * 60 * 60 * 24) * 10) / 10 + " days",
+      maxAge: maxAgeInDays + " days",
+    });
+    
+    return isValid;
+  } catch (error) {
+    console.error("Error checking cache validity:", error);
+    return false;
+  }
+}
