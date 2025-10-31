@@ -27,12 +27,10 @@ const router = createRouter({
 })
 
 // Navigation guard to prevent accidental exits
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to) => {
   // If trying to navigate to undefined route, redirect to home
   if (to.matched.length === 0) {
-    next('/')
-  } else {
-    next()
+    return '/'
   }
 })
 

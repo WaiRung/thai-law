@@ -104,9 +104,9 @@ const loadFlashcards = () => {
     );
     
     if (!selectedStore) {
-        // Invalid category ID, redirect to home
+        // Invalid category ID, redirect to home using replace to avoid adding to history
         console.warn(`Category not found: ${categoryId.value}`);
-        router.push('/');
+        router.replace('/');
         return;
     }
 
@@ -172,9 +172,9 @@ const handleTouchEnd = () => {
 
     // Only process swipe if vertical movement is within acceptable range
     if (deltaY <= MAX_VERTICAL_DISTANCE) {
-        // Right swipe - back to categories
+        // Right swipe - back to categories (use back to preserve history)
         if (deltaX > MIN_SWIPE_DISTANCE) {
-            router.push('/');
+            router.back();
         }
         // Left swipe - next card
         else if (deltaX < -MIN_SWIPE_DISTANCE && currentIndex.value < totalCards.value - 1) {

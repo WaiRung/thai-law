@@ -38,10 +38,10 @@ const router = useRouter();
 const route = useRoute();
 
 // Show back button when not on the home route
-const showBackButton = computed(() => route.name !== 'category');
+const showBackButton = computed(() => route.path !== '/');
 
 const handleBack = () => {
-    router.push('/');
+    router.back();
 };
 </script>
 
