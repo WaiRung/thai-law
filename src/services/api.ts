@@ -54,9 +54,16 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
   // Combine all paragraphs and subsections into the answer
   const answerParts: string[] = [];
 
+  answerParts.push(`${complexQuestion.id}`);
+  answerParts.push(""); // Empty line for spacing
+
   for (const paragraph of complexQuestion.content.paragraphs) {
     // Add paragraph content
-    answerParts.push(`§${paragraph.id} ${paragraph.content}`);
+    if (paragraph.content.length > 1) {
+      answerParts.push(`วรรค ${paragraph.id} ${paragraph.content}`);
+    } else {
+      answerParts.push(`${paragraph.content}`);
+    }
 
     // Add subsections if they exist
     if (paragraph.subsections && paragraph.subsections.length > 0) {

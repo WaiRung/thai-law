@@ -3,7 +3,7 @@
         <div class="flashcard" :class="{ 'is-flipped': isFlipped }">
             <div class="flashcard-face flashcard-front">
                 <div class="card-content">
-                    <div class="card-label">คำถาม</div>
+                    <div class="card-label">คำใบ้</div>
                     <div class="card-text">{{ card.question }}</div>
                 </div>
                 <div class="tap-hint">แตะเพื่อดูคำตอบ</div>
@@ -13,7 +13,7 @@
                     <div class="card-label">คำตอบ</div>
                     <div class="card-text">{{ card.answer }}</div>
                 </div>
-                <div class="tap-hint">แตะเพื่อดูคำถาม</div>
+                <div class="tap-hint">แตะเพื่อดูคำใบ้</div>
             </div>
         </div>
     </div>
