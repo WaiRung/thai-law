@@ -40,7 +40,7 @@
                     <span class="warning-icon">⚠️</span>
                     <span class="warning-text">{{ error }}</span>
                 </div>
-                
+
                 <!-- Cache Status Section -->
                 <div class="cache-status-section">
                     <!-- Cache Available State -->
@@ -48,24 +48,40 @@
                         <div class="cache-header">
                             <span class="cache-icon">📦</span>
                             <h3 class="cache-title">ข้อมูลออฟไลน์</h3>
-                            <span class="cache-badge success">✅ พร้อมใช้งาน</span>
+                            <span class="cache-badge success"
+                                >✅ พร้อมใช้งาน</span
+                            >
                         </div>
                         <div class="cache-details">
                             <p class="cache-detail-item">
                                 <span class="detail-label">อัพเดตล่าสุด:</span>
-                                <span class="detail-value">{{ cacheMetadata?.lastUpdated }}</span>
+                                <span class="detail-value">{{
+                                    cacheMetadata?.lastUpdated
+                                }}</span>
                             </p>
                             <p class="cache-detail-item">
                                 <span class="detail-label">จำนวนคำถาม:</span>
-                                <span class="detail-value">{{ cacheMetadata?.count }} คำถาม</span>
+                                <span class="detail-value"
+                                    >{{ cacheMetadata?.count }} คำถาม</span
+                                >
                             </p>
                         </div>
                         <div class="cache-actions">
-                            <button @click="downloadDataForOffline" :disabled="isDownloading" class="cache-btn update-btn">
-                                <span v-if="!isDownloading">🔄 อัพเดตข้อมูล</span>
+                            <button
+                                @click="downloadDataForOffline"
+                                :disabled="isDownloading"
+                                class="cache-btn update-btn"
+                            >
+                                <span v-if="!isDownloading"
+                                    >🔄 อัพเดตข้อมูล</span
+                                >
                                 <span v-else>⏳ กำลังดาวน์โหลด...</span>
                             </button>
-                            <button @click="clearOfflineData" :disabled="isDownloading" class="cache-btn clear-btn">
+                            <button
+                                @click="clearOfflineData"
+                                :disabled="isDownloading"
+                                class="cache-btn clear-btn"
+                            >
                                 🗑️ ลบแคช
                             </button>
                         </div>
@@ -80,20 +96,28 @@
                         <div class="cache-header">
                             <span class="cache-icon">📦</span>
                             <h3 class="cache-title">ข้อมูลออฟไลน์</h3>
-                            <span class="cache-badge warning">⚠️ ไม่พร้อมใช้งาน</span>
+                            <span class="cache-badge warning"
+                                >⚠️ ไม่พร้อมใช้งาน</span
+                            >
                         </div>
                         <p class="cache-description">
                             ดาวน์โหลดข้อมูลเพื่อใช้งานแบบออฟไลน์ได้ทุกที่ทุกเวลา
                         </p>
                         <div class="cache-actions">
-                            <button @click="downloadDataForOffline" :disabled="isDownloading" class="cache-btn download-btn">
-                                <span v-if="!isDownloading">⬇️ ดาวน์โหลดข้อมูล</span>
+                            <button
+                                @click="downloadDataForOffline"
+                                :disabled="isDownloading"
+                                class="cache-btn download-btn"
+                            >
+                                <span v-if="!isDownloading"
+                                    >⬇️ ดาวน์โหลดข้อมูล</span
+                                >
                                 <span v-else>⏳ กำลังดาวน์โหลด...</span>
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 <CategorySelection
                     :categories="categoryList"
                     @select="selectCategory"
@@ -224,14 +248,18 @@ import CategorySelection from "./components/CategorySelection.vue";
 import LoadingSpinner from "./components/LoadingSpinner.vue";
 import { categoryStores } from "./data/categoryStores";
 import { fetchCategories } from "./services/api";
-import { 
-  getCategoriesCache, 
-  saveCategoriesCache, 
-  getCacheMetadata, 
-  clearCache,
-  isCacheValid
+import {
+    getCategoriesCache,
+    saveCategoriesCache,
+    getCacheMetadata,
+    clearCache,
+    isCacheValid,
 } from "./services/cache";
-import type { Flashcard, CategoryStore, CacheMetadata } from "./types/flashcard";
+import type {
+    Flashcard,
+    CategoryStore,
+    CacheMetadata,
+} from "./types/flashcard";
 
 // Category Management
 const selectedCategory = ref<string | null>(null);
@@ -280,7 +308,7 @@ const loadCategories = async () => {
         // First, check IndexedDB cache and validate it
         const cachedCategories = await getCategoriesCache();
         const cacheIsValid = await isCacheValid();
-        
+
         if (cachedCategories && cachedCategories.length > 0 && cacheIsValid) {
             // Cache exists and is valid, load from cache instantly
             console.log("Loading categories from cache");
@@ -289,20 +317,20 @@ const loadCategories = async () => {
             isLoading.value = false;
             return;
         }
-        
+
         // Cache is stale or doesn't exist, try to refresh from API
         if (cachedCategories && !cacheIsValid) {
             console.log("Cache is stale, refreshing from API");
         }
-        
+
         // No cache exists, try to fetch from API
         console.log("No cache found, fetching from API");
         const apiCategories = await fetchCategories();
         categories.value = apiCategories;
-        
+
         // Automatically save to cache on successful API fetch
         await saveCategoriesCache(apiCategories);
-        
+
         // Update cache metadata
         const metadata = await getCacheMetadata();
         cacheMetadata.value = metadata;
@@ -352,38 +380,40 @@ const downloadDataForOffline = async () => {
     isDownloading.value = true;
     downloadSuccess.value = false;
     error.value = null;
-    
+
     try {
         // Force fetch from API (ignore cache)
         console.log("Downloading data for offline use...");
         const apiCategories = await fetchCategories();
-        
+
         // Save to IndexedDB on success
         await saveCategoriesCache(apiCategories);
-        
+
         // Update categories and cache metadata
         categories.value = apiCategories;
         const metadata = await getCacheMetadata();
         cacheMetadata.value = metadata;
         isCacheAvailable.value = true;
-        
+
         // Show success message for 5 seconds
         downloadSuccess.value = true;
         setTimeout(() => {
             downloadSuccess.value = false;
         }, 5000);
-        
+
         console.log("Data downloaded and cached successfully");
     } catch (err) {
         console.error("Failed to download data:", err);
-        const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        
+        const errorMessage =
+            err instanceof Error ? err.message : "Unknown error";
+
         if (errorMessage.includes("not configured")) {
             error.value = "API ไม่ได้ถูกกำหนดค่า ไม่สามารถดาวน์โหลดข้อมูลได้";
         } else {
-            error.value = "ไม่สามารถดาวน์โหลดข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
+            error.value =
+                "ไม่สามารถดาวน์โหลดข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
         }
-        
+
         setTimeout(() => {
             error.value = null;
         }, 5000);
@@ -397,18 +427,27 @@ const clearOfflineData = async () => {
     if (!confirm("คุณต้องการลบข้อมูลออฟไลน์หรือไม่?")) {
         return;
     }
-    
+
     try {
         await clearCache();
-        
-        // Reset cache-related states
+
+        // Reset cache-related states BEFORE reloading
         isCacheAvailable.value = false;
         cacheMetadata.value = null;
-        
+
         console.log("Offline data cleared successfully");
-        
-        // Optionally reload categories from API or static data
+
+        // Reload categories from API or static data
+        // This will set isUsingFallback if needed
         await loadCategories();
+
+        // Ensure cache metadata stays null after load
+        // (in case loadCategories tries to restore it)
+        const freshMetadata = await getCacheMetadata();
+        if (!freshMetadata) {
+            isCacheAvailable.value = false;
+            cacheMetadata.value = null;
+        }
     } catch (err) {
         console.error("Failed to clear cache:", err);
         error.value = "ไม่สามารถลบแคชได้";
@@ -426,7 +465,7 @@ onMounted(async () => {
         cacheMetadata.value = metadata;
         isCacheAvailable.value = true;
     }
-    
+
     // Load categories
     await loadCategories();
 });
