@@ -18,3 +18,10 @@ export interface GameState {
   isFlipped: boolean;
   completedCards: Set<string>;
 }
+
+export interface CacheMetadata {
+  timestamp: number;
+  lastUpdated: string; // formatted date
+  count: number;
+  version: string;
+}
