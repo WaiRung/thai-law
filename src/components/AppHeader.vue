@@ -2,7 +2,7 @@
     <header class="app-header">
         <div class="header-content">
             <button
-                v-if="showBackButton"
+                v-show="showBackButton"
                 @click="handleBack"
                 class="back-btn"
                 aria-label="Back to categories"
@@ -31,20 +31,17 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-    showBackButton?: boolean;
-}
+import { useRouter, useRoute } from "vue-router";
+import { computed } from "vue";
 
-withDefaults(defineProps<Props>(), {
-    showBackButton: false,
-});
+const router = useRouter();
+const route = useRoute();
 
-const emit = defineEmits<{
-    back: [];
-}>();
+// Show back button when not on the home route
+const showBackButton = computed(() => route.name !== 'category');
 
 const handleBack = () => {
-    emit("back");
+    router.push('/');
 };
 </script>
 
