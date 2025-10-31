@@ -68,26 +68,19 @@
                         </div>
                         <div class="cache-actions">
                             <button
-                                @click="downloadDataForOffline"
+                                @click="reloadData"
                                 :disabled="isDownloading"
-                                class="cache-btn update-btn"
+                                class="cache-btn reload-btn"
                             >
                                 <span v-if="!isDownloading"
-                                    >🔄 อัพเดตข้อมูล</span
+                                    >🔄 โหลดข้อมูลใหม่</span
                                 >
-                                <span v-else>⏳ กำลังดาวน์โหลด...</span>
-                            </button>
-                            <button
-                                @click="clearOfflineData"
-                                :disabled="isDownloading"
-                                class="cache-btn clear-btn"
-                            >
-                                🗑️ ลบแคช
+                                <span v-else>⏳ กำลังโหลด...</span>
                             </button>
                         </div>
                         <!-- Success message -->
                         <div v-if="downloadSuccess" class="success-message">
-                            ✅ อัพเดตข้อมูลสำเร็จ!
+                            ✅ โหลดข้อมูลใหม่สำเร็จ!
                         </div>
                     </div>
 
@@ -105,7 +98,7 @@
                         </p>
                         <div class="cache-actions">
                             <button
-                                @click="downloadDataForOffline"
+                                @click="reloadData"
                                 :disabled="isDownloading"
                                 class="cache-btn download-btn"
                             >
@@ -375,15 +368,21 @@ const selectCategory = (categoryId: string) => {
     completedCards.value.clear();
 };
 
-// Download data for offline use
-const downloadDataForOffline = async () => {
+// Reload data - clear old cache and fetch fresh data
+const reloadData = async () => {
     isDownloading.value = true;
     downloadSuccess.value = false;
     error.value = null;
 
     try {
-        // Force fetch from API (ignore cache)
-        console.log("Downloading data for offline use...");
+        // Clear old cache first (if exists)
+        if (isCacheAvailable.value) {
+            console.log("Clearing old cache...");
+            await clearCache();
+        }
+
+        // Force fetch from API
+        console.log("Fetching fresh data from API...");
         const apiCategories = await fetchCategories();
 
         // Save to IndexedDB on success
@@ -401,17 +400,17 @@ const downloadDataForOffline = async () => {
             downloadSuccess.value = false;
         }, 5000);
 
-        console.log("Data downloaded and cached successfully");
+        console.log("Data reloaded and cached successfully");
     } catch (err) {
-        console.error("Failed to download data:", err);
+        console.error("Failed to reload data:", err);
         const errorMessage =
             err instanceof Error ? err.message : "Unknown error";
 
         if (errorMessage.includes("not configured")) {
-            error.value = "API ไม่ได้ถูกกำหนดค่า ไม่สามารถดาวน์โหลดข้อมูลได้";
+            error.value = "API ไม่ได้ถูกกำหนดค่า ไม่สามารถโหลดข้อมูลได้";
         } else {
             error.value =
-                "ไม่สามารถดาวน์โหลดข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
+                "ไม่สามารถโหลดข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
         }
 
         setTimeout(() => {
@@ -419,41 +418,6 @@ const downloadDataForOffline = async () => {
         }, 5000);
     } finally {
         isDownloading.value = false;
-    }
-};
-
-// Clear offline data
-const clearOfflineData = async () => {
-    if (!confirm("คุณต้องการลบข้อมูลออฟไลน์หรือไม่?")) {
-        return;
-    }
-
-    try {
-        await clearCache();
-
-        // Reset cache-related states BEFORE reloading
-        isCacheAvailable.value = false;
-        cacheMetadata.value = null;
-
-        console.log("Offline data cleared successfully");
-
-        // Reload categories from API or static data
-        // This will set isUsingFallback if needed
-        await loadCategories();
-
-        // Ensure cache metadata stays null after load
-        // (in case loadCategories tries to restore it)
-        const freshMetadata = await getCacheMetadata();
-        if (!freshMetadata) {
-            isCacheAvailable.value = false;
-            cacheMetadata.value = null;
-        }
-    } catch (err) {
-        console.error("Failed to clear cache:", err);
-        error.value = "ไม่สามารถลบแคชได้";
-        setTimeout(() => {
-            error.value = null;
-        }, 5000);
     }
 };
 
@@ -956,22 +920,12 @@ const resetProgress = () => {
     transform: none;
 }
 
-.update-btn {
+.reload-btn {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
-.update-btn:hover:not(:disabled) {
+.reload-btn:hover:not(:disabled) {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.clear-btn {
-    background-color: #ef4444;
-    flex: 0.5;
-}
-
-.clear-btn:hover:not(:disabled) {
-    background-color: #dc2626;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 .download-btn {
@@ -1034,10 +988,6 @@ const resetProgress = () => {
     .cache-btn {
         width: 100%;
         min-width: auto;
-    }
-
-    .clear-btn {
-        flex: 1;
     }
 }
 
