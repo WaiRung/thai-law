@@ -55,7 +55,7 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
   const answerParts: string[] = [];
 
   answerParts.push(`${complexQuestion.id}`);
-  answerParts.push(""); // Empty line for spacing
+  answerParts.push("");
 
   for (const paragraph of complexQuestion.content.paragraphs) {
     // Add paragraph content
@@ -68,9 +68,12 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
     // Add subsections if they exist
     if (paragraph.subsections && paragraph.subsections.length > 0) {
       for (const subsection of paragraph.subsections) {
+        answerParts.push("");
         answerParts.push(`  (${subsection.id}) ${subsection.content}`);
+        answerParts.push("");
       }
     }
+    answerParts.push("");
   }
 
   const answer = answerParts.join("\n\n");
