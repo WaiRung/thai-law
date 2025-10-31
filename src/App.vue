@@ -118,7 +118,7 @@
             </template>
         </main>
 
-        <main class="main-content" v-else>
+        <main class="main-content" v-else ref="flashcardViewRef">
             <!-- Progress Bar -->
             <div class="progress-section">
                 <div class="progress-text">
@@ -235,7 +235,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import FlashCard from "./components/FlashCard.vue";
 import CategorySelection from "./components/CategorySelection.vue";
 import LoadingSpinner from "./components/LoadingSpinner.vue";
@@ -283,6 +283,16 @@ const cards = ref<Flashcard[]>([]);
 const currentIndex = ref(0);
 const isFlipped = ref(false);
 const completedCards = ref(new Set<string>());
+
+// Touch gesture state
+const touchStartX = ref(0);
+const touchStartY = ref(0);
+const touchEndX = ref(0);
+const touchEndY = ref(0);
+
+// Touch gesture constants
+const MIN_SWIPE_DISTANCE = 50;
+const MAX_VERTICAL_DISTANCE = 100;
 
 // Computed
 const currentCard = computed(() => cards.value[currentIndex.value]);
@@ -421,6 +431,39 @@ const reloadData = async () => {
     }
 };
 
+// Ref for flashcard view element
+const flashcardViewRef = ref<HTMLElement | null>(null);
+
+// Helper function to add touch event listeners
+const addTouchListeners = () => {
+    if (flashcardViewRef.value) {
+        flashcardViewRef.value.addEventListener('touchstart', handleTouchStart, { passive: true });
+        flashcardViewRef.value.addEventListener('touchmove', handleTouchMove, { passive: true });
+        flashcardViewRef.value.addEventListener('touchend', handleTouchEnd, { passive: true });
+    }
+};
+
+// Helper function to remove touch event listeners
+const removeTouchListeners = () => {
+    if (flashcardViewRef.value) {
+        flashcardViewRef.value.removeEventListener('touchstart', handleTouchStart);
+        flashcardViewRef.value.removeEventListener('touchmove', handleTouchMove);
+        flashcardViewRef.value.removeEventListener('touchend', handleTouchEnd);
+    }
+};
+
+// Watch for selectedCategory changes to add/remove event listeners
+watch(selectedCategory, async (newValue) => {
+    if (newValue) {
+        // Category selected, wait for DOM update then add listeners
+        await nextTick();
+        addTouchListeners();
+    } else {
+        // Category deselected, remove listeners
+        removeTouchListeners();
+    }
+});
+
 // Initialize categories on mount
 onMounted(async () => {
     // Load cache metadata
@@ -432,6 +475,11 @@ onMounted(async () => {
 
     // Load categories
     await loadCategories();
+});
+
+// Cleanup event listeners on unmount
+onUnmounted(() => {
+    removeTouchListeners();
 });
 
 const backToCategories = () => {
@@ -479,6 +527,40 @@ const resetProgress = () => {
     completedCards.value.clear();
     currentIndex.value = 0;
     isFlipped.value = false;
+};
+
+// Touch gesture handlers
+const handleTouchStart = (e: TouchEvent) => {
+    touchStartX.value = e.touches[0].clientX;
+    touchStartY.value = e.touches[0].clientY;
+};
+
+const handleTouchMove = (e: TouchEvent) => {
+    touchEndX.value = e.touches[0].clientX;
+    touchEndY.value = e.touches[0].clientY;
+};
+
+const handleTouchEnd = () => {
+    const deltaX = touchEndX.value - touchStartX.value;
+    const deltaY = Math.abs(touchEndY.value - touchStartY.value);
+
+    // Only process swipe if vertical movement is within acceptable range
+    if (deltaY <= MAX_VERTICAL_DISTANCE) {
+        // Right swipe - back to categories
+        if (deltaX > MIN_SWIPE_DISTANCE) {
+            backToCategories();
+        }
+        // Left swipe - next card
+        else if (deltaX < -MIN_SWIPE_DISTANCE && currentIndex.value < totalCards.value - 1) {
+            nextCard();
+        }
+    }
+
+    // Reset touch coordinates
+    touchStartX.value = 0;
+    touchStartY.value = 0;
+    touchEndX.value = 0;
+    touchEndY.value = 0;
 };
 </script>
 
