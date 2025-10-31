@@ -59,7 +59,7 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
 
   for (const paragraph of complexQuestion.content.paragraphs) {
     // Add paragraph content
-    if (paragraph.content.length > 1) {
+    if (complexQuestion.content.paragraphs.length > 1) {
       answerParts.push(`วรรค ${paragraph.id} ${paragraph.content}`);
     } else {
       answerParts.push(`${paragraph.content}`);
