@@ -13,9 +13,9 @@ const API_CONFIG = {
  * Maps Thai category IDs to their corresponding JSON filenames
  */
 const CATEGORY_FILE_MAP: Record<string, string> = {
-  "กฎหมายแพ่ง": "civil_and_commercial_code",
-  "กฎหมายอาญา": "criminal_law",
-  "กฎหมายครอบครัว": "family_law",
+  กฎหมายแพ่ง: "civil_and_commercial_code",
+  กฎหมายอาญา: "criminal_law",
+  กฎหมายวิธพิจารณาความแพ่ง: "civil_procedure_code",
 };
 
 /**
@@ -95,7 +95,7 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
   // Fetch all categories in parallel
   const categoryIds = Object.keys(CATEGORY_FILE_MAP);
   const fetchPromises = categoryIds.map((categoryId) =>
-    fetchCategoryById(categoryId)
+    fetchCategoryById(categoryId),
   );
 
   try {

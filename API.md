@@ -33,7 +33,7 @@ The app uses a static JSON file structure where each category is stored in a sep
 **Category Files:**
 - `civil_and_commercial_code.json` - Civil & Commercial Law (กฎหมายแพ่ง)
 - `criminal_law.json` - Criminal Law (กฎหมายอาญา)
-- `family_law.json` - Family Law (กฎหมายครอบครัว)
+- `civil_procedure_code.json` - Civil Procedure Code (กฎหมายวิธีพิจารณาควาแพ่ง)
 
 ### 1. Category File Format
 
@@ -72,7 +72,7 @@ Each category JSON file should follow this structure:
 The app automatically fetches all three category files in parallel when it starts:
 1. `{VITE_API_BASE_URL}/civil_and_commercial_code.json`
 2. `{VITE_API_BASE_URL}/criminal_law.json`
-3. `{VITE_API_BASE_URL}/family_law.json`
+3. `{VITE_API_BASE_URL}/civil_procedure_code.json`
 
 The mapping between category IDs and filenames is defined in `src/services/api.ts`.
 
