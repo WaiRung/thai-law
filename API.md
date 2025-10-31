@@ -11,8 +11,10 @@ The app now supports loading category data from an API endpoint. If the API is n
 To enable API integration, create a `.env` file in the project root with the following configuration:
 
 ```env
-VITE_API_BASE_URL=https://your-api-domain.com
+VITE_API_BASE_URL=https://wairung.github.io/thai-law-data/api/
 ```
+
+**Important:** The base URL should end with a trailing slash `/` and point to the directory containing the category JSON files.
 
 You can copy `.env.example` as a starting point:
 
@@ -22,44 +24,23 @@ cp .env.example .env
 
 ## API Endpoints
 
-### 1. Get All Categories
+The app uses a static JSON file structure where each category is stored in a separate JSON file.
 
-**Endpoint:** `GET /categories`
+### API Structure
 
-**Response Format:**
-```json
-[
-  {
-    "id": "กฎหมายแพ่ง",
-    "nameTh": "กฎหมายแพ่ง",
-    "nameEn": "Civil & Commercial Law",
-    "icon": "⚖️",
-    "questions": [
-      {
-        "id": 1,
-        "question": "ประมวลกฎหมายแพ่งและพาณิชย์ คืออะไร?",
-        "answer": "เป็นกฎหมายที่ว่าด้วยความสัมพันธ์ระหว่างบุคคลธรรมดาหรือนิติบุคคล..."
-      }
-    ]
-  }
-]
-```
+**Base URL:** Set `VITE_API_BASE_URL` to the base directory containing the category JSON files (e.g., `https://wairung.github.io/thai-law-data/api/`)
 
-**Response Fields:**
-- `id` (string): Unique identifier for the category
-- `nameTh` (string): Category name in Thai
-- `nameEn` (string): Category name in English
-- `icon` (string): Emoji icon for the category
-- `questions` (array): Array of flashcard questions for this category
-  - `id` (number): Unique identifier for the question
-  - `question` (string): The question text
-  - `answer` (string): The answer text
+**Category Files:**
+- `civil_and_commercial_code.json` - Civil & Commercial Law (กฎหมายแพ่ง)
+- `criminal_law.json` - Criminal Law (กฎหมายอาญา)
+- `family_law.json` - Family Law (กฎหมายครอบครัว)
 
-### 2. Get Category by ID (Optional)
+### 1. Category File Format
 
-**Endpoint:** `GET /categories/:categoryId`
+Each category JSON file should follow this structure:
 
-**Response Format:**
+**Example:** `civil_and_commercial_code.json`
+
 ```json
 {
   "id": "กฎหมายแพ่ง",
@@ -76,7 +57,24 @@ cp .env.example .env
 }
 ```
 
-**Note:** This endpoint is implemented in the API service but not currently used by the app. All categories are loaded at once on app initialization.
+**Response Fields:**
+- `id` (string): Unique identifier for the category (Thai name)
+- `nameTh` (string): Category name in Thai
+- `nameEn` (string): Category name in English
+- `icon` (string): Emoji icon for the category
+- `questions` (array): Array of flashcard questions for this category
+  - `id` (number): Unique identifier for the question
+  - `question` (string): The question text
+  - `answer` (string): The answer text
+
+### 2. How Categories are Loaded
+
+The app automatically fetches all three category files in parallel when it starts:
+1. `{VITE_API_BASE_URL}/civil_and_commercial_code.json`
+2. `{VITE_API_BASE_URL}/criminal_law.json`
+3. `{VITE_API_BASE_URL}/family_law.json`
+
+The mapping between category IDs and filenames is defined in `src/services/api.ts`.
 
 ## Error Handling
 
