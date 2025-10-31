@@ -20,6 +20,14 @@ interface CacheEntry {
 }
 
 /**
+ * Thai month abbreviations for date formatting
+ */
+const THAI_MONTHS = [
+  "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+  "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+];
+
+/**
  * Open IndexedDB database
  * @returns Promise with IDBDatabase
  */
@@ -61,14 +69,8 @@ function openDatabase(): Promise<IDBDatabase> {
 function formatThaiDate(timestamp: number): string {
   const date = new Date(timestamp);
   const thaiYear = date.getFullYear() + 543;
-  
-  const thaiMonths = [
-    "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
-  ];
-  
   const day = date.getDate();
-  const month = thaiMonths[date.getMonth()];
+  const month = THAI_MONTHS[date.getMonth()];
   
   return `${day} ${month} ${thaiYear}`;
 }

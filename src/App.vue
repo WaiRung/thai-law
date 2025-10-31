@@ -228,7 +228,8 @@ import {
   getCategoriesCache, 
   saveCategoriesCache, 
   getCacheMetadata, 
-  clearCache
+  clearCache,
+  isCacheValid
 } from "./services/cache";
 import type { Flashcard, CategoryStore, CacheMetadata } from "./types/flashcard";
 
@@ -276,16 +277,22 @@ const loadCategories = async () => {
     isUsingFallback.value = false;
 
     try {
-        // First, check IndexedDB cache
+        // First, check IndexedDB cache and validate it
         const cachedCategories = await getCategoriesCache();
+        const cacheIsValid = await isCacheValid();
         
-        if (cachedCategories && cachedCategories.length > 0) {
-            // Cache exists, load from cache instantly
+        if (cachedCategories && cachedCategories.length > 0 && cacheIsValid) {
+            // Cache exists and is valid, load from cache instantly
             console.log("Loading categories from cache");
             categories.value = cachedCategories;
             isCacheAvailable.value = true;
             isLoading.value = false;
             return;
+        }
+        
+        // Cache is stale or doesn't exist, try to refresh from API
+        if (cachedCategories && !cacheIsValid) {
+            console.log("Cache is stale, refreshing from API");
         }
         
         // No cache exists, try to fetch from API
