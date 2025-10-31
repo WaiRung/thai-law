@@ -194,7 +194,7 @@ const categoryList = computed(() =>
 const cards = ref<Flashcard[]>([]);
 const currentIndex = ref(0);
 const isFlipped = ref(false);
-const completedCards = ref(new Set<number>());
+const completedCards = ref(new Set<string>());
 
 // Computed
 const currentCard = computed(() => cards.value[currentIndex.value]);
@@ -215,14 +215,19 @@ const loadCategories = async () => {
         categories.value = apiCategories;
     } catch (err) {
         // Fall back to static data if API fails
-        console.warn('Failed to load categories from API, using static data:', err);
+        console.warn(
+            "Failed to load categories from API, using static data:",
+            err,
+        );
         categories.value = categoryStores;
         isUsingFallback.value = true;
-        
+
         // Set a user-friendly message if API was expected but failed
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        if (!errorMessage.includes('not configured')) {
-            error.value = 'ไม่สามารถโหลดข้อมูลจาก API ได้ กำลังใช้ข้อมูลแบบออฟไลน์';
+        const errorMessage =
+            err instanceof Error ? err.message : "Unknown error";
+        if (!errorMessage.includes("not configured")) {
+            error.value =
+                "ไม่สามารถโหลดข้อมูลจาก API ได้ กำลังใช้ข้อมูลแบบออฟไลน์";
             // Clear error after 5 seconds so user can continue
             setTimeout(() => {
                 error.value = null;

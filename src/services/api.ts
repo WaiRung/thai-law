@@ -24,8 +24,11 @@ const CATEGORY_FILE_MAP: Record<string, string> = {
  * @throws Error if validation fails
  */
 function validateQuestion(question: any): asserts question is Flashcard {
-  if (typeof question.id !== "number") {
-    throw new Error("Invalid question structure: id must be a number");
+  if (typeof question.id !== "string") {
+    throw new Error("Invalid question structure: id must be a string");
+  }
+  if (!question.id.trim()) {
+    throw new Error("Invalid question structure: id cannot be empty");
   }
   if (typeof question.question !== "string") {
     throw new Error("Invalid question structure: question must be a string");

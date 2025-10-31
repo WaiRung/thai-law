@@ -1,5 +1,5 @@
 export interface Flashcard {
-  id: number;
+  id: string;
   question: string;
   answer: string;
 }
@@ -16,5 +16,5 @@ export interface GameState {
   currentIndex: number;
   totalCards: number;
   isFlipped: boolean;
-  completedCards: Set<number>;
+  completedCards: Set<string>;
 }
