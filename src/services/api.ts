@@ -150,11 +150,26 @@ export async function fetchCategoryById(
     }
 
     const data = await response.json();
-    console.log(data);
     // Validate category structure
-    validateCategory(data);
+    // Map the response data structure to our expected format
+    // The API returns { [categoryName]: questions[] }
+    const categoryName = Object.keys(data)[0];
+    const questions = data[categoryName];
 
-    return data;
+    // Construct the full category object
+    const category = {
+      id: categoryId,
+      nameTh: categoryId,
+      nameEn: filename
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" "),
+      icon: "📚",
+      questions: questions,
+    };
+
+    validateCategory(category);
+    return category;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error) {
