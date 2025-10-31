@@ -11,7 +11,7 @@
             <div class="flashcard-face flashcard-back">
                 <div class="card-content">
                     <div class="card-label">คำตอบ</div>
-                    <div class="answer">{{ card.answer }}</div>
+                    <div class="card-answer">{{ card.answer }}</div>
                 </div>
                 <div class="tap-hint">แตะเพื่อดูคำใบ้</div>
             </div>
