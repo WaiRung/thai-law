@@ -111,6 +111,7 @@ const handleFlip = () => {
     font-weight: 500;
     word-wrap: break-word;
     max-width: 100%;
+    white-space: pre-wrap;
 }
 
 .card-category {

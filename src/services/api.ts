@@ -55,7 +55,7 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
   const answerParts: string[] = [];
 
   answerParts.push(`${complexQuestion.id}`);
-  answerParts.push("");
+  answerParts.push("\n\t");
 
   for (const paragraph of complexQuestion.content.paragraphs) {
     // Add paragraph content
