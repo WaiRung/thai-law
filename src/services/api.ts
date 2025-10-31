@@ -131,8 +131,8 @@ export async function fetchCategoryById(
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
   try {
-    // Construct the URL: baseUrl should end with '/', and we append filename.json
-    const url = `${API_CONFIG.baseUrl.replace(/\/$/, "")}/${filename}.json`;
+    // Construct the URL using URL constructor for robust URL building
+    const url = new URL(`${filename}.json`, API_CONFIG.baseUrl).toString();
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
