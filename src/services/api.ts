@@ -77,6 +77,60 @@ function validateCategory(category: any): asserts category is CategoryStore {
   if (!Array.isArray(category.questions)) {
     throw new Error("Invalid category structure: questions must be an array");
   }
+  // Validate that questions array has the correct structure
+  for (const question of category.questions) {
+    // Check if question has the new structure with title and content
+    if (question.title !== undefined && question.content !== undefined) {
+      // New structure validation
+      if (typeof question.title !== "string") {
+        throw new Error("Invalid question structure: title must be a string");
+      }
+      if (typeof question.content !== "object" || question.content === null) {
+        throw new Error(
+          "Invalid question structure: content must be an object",
+        );
+      }
+      if (!Array.isArray(question.content.paragraphs)) {
+        throw new Error(
+          "Invalid question structure: content.paragraphs must be an array",
+        );
+      }
+      // Validate each paragraph
+      for (const paragraph of question.content.paragraphs) {
+        if (typeof paragraph.id !== "number") {
+          throw new Error("Invalid paragraph structure: id must be a number");
+        }
+        if (typeof paragraph.content !== "string") {
+          throw new Error(
+            "Invalid paragraph structure: content must be a string",
+          );
+        }
+        if (
+          paragraph.subsections !== null &&
+          paragraph.subsections !== undefined
+        ) {
+          if (!Array.isArray(paragraph.subsections)) {
+            throw new Error(
+              "Invalid paragraph structure: subsections must be an array or null",
+            );
+          }
+          // Validate each subsection
+          for (const subsection of paragraph.subsections) {
+            if (typeof subsection.id !== "number") {
+              throw new Error(
+                "Invalid subsection structure: id must be a number",
+              );
+            }
+            if (typeof subsection.content !== "string") {
+              throw new Error(
+                "Invalid subsection structure: content must be a string",
+              );
+            }
+          }
+        }
+      }
+    }
+  }
 
   // Validate each question in the category
   for (const question of category.questions) {
