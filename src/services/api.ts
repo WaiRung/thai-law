@@ -54,15 +54,14 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
   // Combine all paragraphs and subsections into the answer
   const answerParts: string[] = [];
 
-  answerParts.push(`${complexQuestion.id}`);
-  answerParts.push("\n\t");
+  answerParts.push(complexQuestion.id);
 
   for (const paragraph of complexQuestion.content.paragraphs) {
     // Add paragraph content
     if (complexQuestion.content.paragraphs.length > 1) {
       answerParts.push(`วรรค ${paragraph.id} ${paragraph.content}`);
     } else {
-      answerParts.push(`${paragraph.content}`);
+      answerParts.push(paragraph.content);
     }
 
     // Add subsections if they exist
@@ -70,13 +69,11 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
       for (const subsection of paragraph.subsections) {
         answerParts.push("");
         answerParts.push(`  (${subsection.id}) ${subsection.content}`);
-        answerParts.push("");
       }
     }
-    answerParts.push("");
   }
 
-  const answer = answerParts.join("\n\n");
+  const answer = answerParts.join("\n");
 
   return {
     id: complexQuestion.id,
