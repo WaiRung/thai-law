@@ -57,11 +57,12 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
   answerParts.push(complexQuestion.id);
 
   for (const paragraph of complexQuestion.content.paragraphs) {
+    answerParts.push("");
     // Add paragraph content
     if (complexQuestion.content.paragraphs.length > 1) {
-      answerParts.push(`วรรค ${paragraph.id} ${paragraph.content}`);
+      answerParts.push(` วรรค ${paragraph.id} ${paragraph.content}`);
     } else {
-      answerParts.push(paragraph.content);
+      answerParts.push(` ${paragraph.content}`);
     }
 
     // Add subsections if they exist
