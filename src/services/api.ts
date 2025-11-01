@@ -39,7 +39,7 @@ const API_CONFIG = {
 const CATEGORY_FILE_MAP: Record<string, string> = {
   กฎหมายแพ่ง: "civil_and_commercial_code",
   กฎหมายอาญา: "criminal_code",
-  กฎหมายวิธีพิจารณาความแพ: "civil_procedure_code",
+  กฎหมายวิธีพิจารณาความแพ่ง: "civil_procedure_code",
 };
 
 /**
