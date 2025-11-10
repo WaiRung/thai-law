@@ -25,3 +25,8 @@ export interface CacheMetadata {
   count: number;
   version: string;
 }
+
+export interface QuestionFilter {
+  categoryId: string;
+  allowedQuestionIds: string[];
+}
