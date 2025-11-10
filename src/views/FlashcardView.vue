@@ -40,6 +40,7 @@ import {
     getCategoriesCache,
     isCacheValid,
 } from "../services/cache";
+import { filterQuestions } from "../services/filterService";
 import type {
     Flashcard,
     CategoryStore,
@@ -98,7 +99,7 @@ const loadCategories = async () => {
 };
 
 // Load flashcards for the selected category
-const loadFlashcards = () => {
+const loadFlashcards = async () => {
     const selectedStore = categories.value.find(
         (store) => store.id === categoryId.value,
     );
@@ -110,7 +111,13 @@ const loadFlashcards = () => {
         return;
     }
 
-    cards.value = [...selectedStore.questions];
+    // Apply question filtering based on allowed IDs
+    const filteredQuestions = await filterQuestions(
+        categoryId.value,
+        selectedStore.questions
+    );
+
+    cards.value = [...filteredQuestions];
     currentIndex.value = 0;
     isFlipped.value = false;
     completedCards.value.clear();
