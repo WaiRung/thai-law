@@ -1,4 +1,5 @@
 import type { CategoryStore, Flashcard } from "../types/flashcard";
+import categoriesConfig from "../config/categories.json";
 
 /**
  * Complex format interfaces for API data
@@ -35,12 +36,15 @@ const API_CONFIG = {
 /**
  * Category ID to filename mapping
  * Maps Thai category IDs to their corresponding JSON filenames
+ * This mapping is loaded from the categories configuration file
  */
-const CATEGORY_FILE_MAP: Record<string, string> = {
-  กฎหมายแพ่ง: "civil_and_commercial_code",
-  กฎหมายอาญา: "criminal_code",
-  กฎหมายวิธีพิจารณาความแพ่ง: "civil_procedure_code",
-};
+const CATEGORY_FILE_MAP: Record<string, string> = categoriesConfig.categories.reduce(
+  (map, category) => {
+    map[category.id] = category.apiFilename;
+    return map;
+  },
+  {} as Record<string, string>
+);
 
 /**
  * Map complex format to simple flashcard format

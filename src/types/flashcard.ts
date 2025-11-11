@@ -10,6 +10,7 @@ export interface CategoryStore {
   nameEn: string;
   icon: string;
   questions: Flashcard[];
+  apiFilename?: string; // Optional: Used for API filename mapping
 }
 
 export interface GameState {
