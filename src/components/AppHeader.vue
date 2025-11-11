@@ -22,6 +22,7 @@
                     />
                 </svg>
             </button>
+            <img src="/icon.svg" alt="Thai Law" class="app-logo" />
             <div class="header-text">
                 <h1 class="app-title">Thai Law Flashcards</h1>
                 <p class="app-subtitle">Thai Law Flashcards</p>
@@ -92,6 +93,12 @@ const handleBack = () => {
     height: 1.5rem;
 }
 
+.app-logo {
+    width: 3rem;
+    height: 3rem;
+    filter: brightness(0) invert(1);
+}
+
 .header-text {
     text-align: center;
 }
@@ -125,6 +132,11 @@ const handleBack = () => {
     .back-icon {
         width: 1.25rem;
         height: 1.25rem;
+    }
+
+    .app-logo {
+        width: 2.5rem;
+        height: 2.5rem;
     }
 
     .app-title {
