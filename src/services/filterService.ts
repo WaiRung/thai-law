@@ -10,9 +10,9 @@ const filterCache = new Map<string, Set<string>>();
 
 // Map category IDs to imported filter data
 const categoryFilters: Record<string, QuestionFilter> = {
+  "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า": loanFilter,
   "กฎหมายแพ่ง": civilFilter,
   "กฎหมายอาญา": criminalFilter,
-  "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า": loanFilter,
   // Add more filters as needed
 };
 
