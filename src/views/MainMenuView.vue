@@ -3,7 +3,7 @@
         <div class="menu-container">
             <div class="welcome-section">
                 <h2 class="welcome-title">ยินดีต้อนรับ</h2>
-                <p class="welcome-subtitle">Welcome to Thai Law Flashcards</p>
+                <p class="welcome-subtitle">Welcome to Thai Law</p>
             </div>
 
             <div class="menu-items">
