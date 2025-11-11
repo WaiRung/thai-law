@@ -65,7 +65,7 @@ const categoryList = computed(() =>
         nameTh: store.nameTh,
         nameEn: store.nameEn,
         icon: store.icon,
-        count: filteredCounts.value[store.id] ?? 0,
+        count: store.questions ? store.questions.length : 0,
     })),
 );
 
