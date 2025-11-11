@@ -24,8 +24,8 @@
             </button>
             <img src="/icon.svg" alt="Thai Law" class="app-logo" />
             <div class="header-text">
-                <h1 class="app-title">Thai Law Flashcards</h1>
-                <p class="app-subtitle">Thai Law Flashcards</p>
+                <h1 class="app-title">Thai Law</h1>
+                <p class="app-subtitle">Thai Law</p>
             </div>
         </div>
     </header>
