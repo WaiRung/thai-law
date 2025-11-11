@@ -33,6 +33,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import CacheStatus from "../components/CacheStatus.vue";
 import { categoryStores } from "../data/categoryStores";
 import { fetchCategories } from "../services/api";
+import { filterQuestions } from "../services/filterService";
 import {
     getCategoriesCache,
     saveCategoriesCache,
@@ -46,6 +47,7 @@ const router = useRouter();
 
 // Category Management
 const categories = ref<CategoryStore[]>([]);
+const filteredCounts = ref<Record<string, number>>({});
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const isUsingFallback = ref(false);
@@ -63,7 +65,7 @@ const categoryList = computed(() =>
         nameTh: store.nameTh,
         nameEn: store.nameEn,
         icon: store.icon,
-        count: store.questions.length,
+        count: filteredCounts.value[store.id] ?? 0,
     })),
 );
 
@@ -96,6 +98,11 @@ const loadCategories = async () => {
         console.log("No cache found, fetching from API");
         const apiCategories = await fetchCategories();
         categories.value = apiCategories;
+
+        for (const store of categories.value) {
+            const filtered = await filterQuestions(store.id, store.questions);
+            filteredCounts.value[store.id] = filtered.length;
+        }
 
         // Automatically save to cache on successful API fetch
         await saveCategoriesCache(apiCategories);
