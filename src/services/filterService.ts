@@ -1,8 +1,9 @@
 import type { QuestionFilter, Flashcard } from "../types/flashcard";
 
 // Import filter files explicitly
-import civilFilter from "../filters/civil.json";
-import criminalFilter from "../filters/criminal.json";
+import civilFilter from "../filters/civil/civil.json";
+import loanFilter from "../filters/civil/loan.json";
+import criminalFilter from "../filters/criminal/criminal.json";
 
 // Map to store category filters as Sets for efficient lookup
 const filterCache = new Map<string, Set<string>>();
@@ -11,6 +12,7 @@ const filterCache = new Map<string, Set<string>>();
 const categoryFilters: Record<string, QuestionFilter> = {
   "กฎหมายแพ่ง": civilFilter,
   "กฎหมายอาญา": criminalFilter,
+  "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า": loanFilter,
   // Add more filters as needed
 };
 
