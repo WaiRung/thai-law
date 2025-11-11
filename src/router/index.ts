@@ -1,12 +1,18 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import MainMenuView from '../views/MainMenuView.vue'
 import CategoryView from '../views/CategoryView.vue'
 import FlashcardView from '../views/FlashcardView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    name: 'category',
+    name: 'main-menu',
+    component: MainMenuView,
+  },
+  {
+    path: '/flashcards',
+    name: 'flashcard-categories',
     component: CategoryView,
   },
   {
