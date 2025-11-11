@@ -40,10 +40,7 @@ import {
     clearCache,
     isCacheValid,
 } from "../services/cache";
-import type {
-    CategoryStore,
-    CacheMetadata,
-} from "../types/flashcard";
+import type { CategoryStore, CacheMetadata } from "../types/flashcard";
 
 const router = useRouter();
 
@@ -188,7 +185,7 @@ const reloadData = async () => {
 // Category Selection Method
 const selectCategory = (categoryId: string) => {
     // Navigate to flashcard view using router
-    router.push({ name: 'flashcards', params: { categoryId } });
+    router.push({ name: "flashcards", params: { categoryId } });
 };
 
 // Initialize categories on mount
