@@ -45,6 +45,8 @@ const handleFlip = () => {
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    position: relative;
+    z-index: 10;
 }
 
 .flashcard {

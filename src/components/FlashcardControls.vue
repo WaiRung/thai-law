@@ -118,6 +118,8 @@ const handleReset = () => {
     gap: 1rem;
     justify-content: center;
     margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
 }
 
 .control-btn {
