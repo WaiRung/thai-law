@@ -206,6 +206,10 @@ onMounted(async () => {
 
     // Load categories
     await loadCategories();
+    await Promise.all(categories.value.map(async (store) => {
+        const filtered = await filterQuestions(store.id, store.questions);
+        filteredCounts.value[store.id] = filtered.length;
+    }));
 });
 </script>
 
