@@ -51,8 +51,8 @@ See [PWA.md](PWA.md) for detailed PWA features and installation instructions.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/WaiRung/thai-law-flashcard.git
-cd thai-law-flashcard
+git clone https://github.com/WaiRung/thai-law.git
+cd thai-law
 ```
 
 2. Install dependencies:
@@ -84,7 +84,7 @@ yarn preview
 ## Project Structure 📁
 
 ```
-thai-law-flashcard/
+thai-law/
 ├── src/
 │   ├── components/
 │   │   ├── FlashCard.vue      # Flashcard component with flip animation

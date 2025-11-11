@@ -18,8 +18,8 @@ export default defineConfig({
         theme_color: '#3b82f6',
         background_color: '#ffffff',
         display: 'standalone',
-        scope: '/thai-law-flashcard/',
-        start_url: '/thai-law-flashcard/',
+        scope: '/thai-law/',
+        start_url: '/thai-law/',
         icons: [
           {
             src: 'icon-192.png',
@@ -56,5 +56,5 @@ export default defineConfig({
       }
     })
   ],
-  base: '/thai-law-flashcard/',
+  base: '/thai-law/',
 })

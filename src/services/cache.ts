@@ -3,7 +3,7 @@ import type { CategoryStore, CacheMetadata } from "../types/flashcard";
 /**
  * IndexedDB Database Configuration
  */
-const DB_NAME = "thai-law-flashcard-db";
+const DB_NAME = "thai-law-db";
 const STORE_NAME = "categories-cache";
 const DB_VERSION = 1;
 const CACHE_VERSION = "1.0";
