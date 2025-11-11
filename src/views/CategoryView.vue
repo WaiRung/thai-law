@@ -102,6 +102,8 @@ const loadCategories = async () => {
         for (const store of categories.value) {
             const filtered = await filterQuestions(store.id, store.questions);
             filteredCounts.value[store.id] = filtered.length;
+
+            console.log("Loaded count for", store.id, ":", filtered.length);
         }
 
         // Automatically save to cache on successful API fetch
