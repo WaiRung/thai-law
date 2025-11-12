@@ -45,9 +45,11 @@ import type {
     Flashcard,
     CategoryStore,
 } from "../types/flashcard";
+import { useHeader } from "../composables/useHeader";
 
 const router = useRouter();
 const route = useRoute();
+const { setHeader, resetHeader } = useHeader();
 
 // Get categoryId from route params
 const categoryId = computed(() => route.params.categoryId as string);
@@ -110,6 +112,9 @@ const loadFlashcards = async () => {
         router.replace('/');
         return;
     }
+
+    // Set header title and subtitle based on the selected category
+    setHeader(selectedStore.nameTh, selectedStore.nameEn);
 
     // Apply question filtering based on allowed IDs
     const filteredQuestions = await filterQuestions(
@@ -241,6 +246,7 @@ onMounted(async () => {
 // Cleanup event listeners on unmount
 onUnmounted(() => {
     removeTouchListeners();
+    resetHeader();
 });
 </script>
 

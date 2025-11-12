@@ -24,8 +24,8 @@
             </button>
             <img src="/icon.svg" alt="Thai Law" class="app-logo" />
             <div class="header-text">
-                <h1 class="app-title">Thai Law</h1>
-                <p class="app-subtitle">Thai Law</p>
+                <h1 class="app-title">{{ appTitle }}</h1>
+                <p class="app-subtitle">{{ appSubtitle }}</p>
             </div>
         </div>
     </header>
@@ -34,9 +34,11 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from "vue-router";
 import { computed } from "vue";
+import { useHeader } from "../composables/useHeader";
 
 const router = useRouter();
 const route = useRoute();
+const { appTitle, appSubtitle } = useHeader();
 
 // Show back button when not on the home route
 const showBackButton = computed(() => route.path !== '/');
