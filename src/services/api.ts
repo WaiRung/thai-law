@@ -49,16 +49,21 @@ const CATEGORY_FILE_MAP: Record<string, string> = categoriesConfig.categories.re
 /**
  * Map complex format to simple flashcard format
  * @param complexQuestion - Question in complex format (title + content with paragraphs)
- * @returns Flashcard in simple format (question + answer)
+ * @returns Array of Flashcards - one for the full section and one for each subsection if they exist
  */
-function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
+function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[] {
+  const flashcards: Flashcard[] = [];
+
   // Use title as the question
   const question = complexQuestion.title;
 
-  // Combine all paragraphs and subsections into the answer
+  // Combine all paragraphs and subsections into the answer for the full section card
   const answerParts: string[] = [];
 
   answerParts.push(complexQuestion.id);
+
+  // Track all subsections to generate individual cards
+  const subsectionsData: Array<{ id: number; content: string; paragraphId: number }> = [];
 
   for (const paragraph of complexQuestion.content.paragraphs) {
     answerParts.push("");
@@ -74,17 +79,37 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
       for (const subsection of paragraph.subsections) {
         answerParts.push("");
         answerParts.push(`  (${subsection.id}) ${subsection.content}`);
+        
+        // Track subsection for individual card generation
+        subsectionsData.push({
+          id: subsection.id,
+          content: subsection.content,
+          paragraphId: paragraph.id
+        });
       }
     }
   }
 
   const answer = answerParts.join("\n");
 
-  return {
+  // Always create the full section card
+  flashcards.push({
     id: complexQuestion.id,
     question: question,
     answer: answer,
-  };
+  });
+
+  // Create individual cards for each subsection
+  for (const subsection of subsectionsData) {
+    const subsectionId = `${complexQuestion.id} อนุ ${subsection.id}`;
+    flashcards.push({
+      id: subsectionId,
+      question: subsectionId,
+      answer: `${complexQuestion.id}\n\n(${subsection.id}) ${subsection.content}`,
+    });
+  }
+
+  return flashcards;
 }
 
 /**
@@ -213,9 +238,9 @@ function validateCategory(category: any): asserts category is CategoryStore {
     if (question.title !== undefined && question.content !== undefined) {
       // Validate complex format
       validateComplexQuestion(question);
-      // Map complex format to simple format
-      const simpleQuestion = mapComplexToSimpleFormat(question);
-      transformedQuestions.push(simpleQuestion);
+      // Map complex format to simple format (returns array of flashcards)
+      const simpleQuestions = mapComplexToSimpleFormat(question);
+      transformedQuestions.push(...simpleQuestions);
     } else {
       // Already in simple format, just validate
       validateSimpleQuestion(question);

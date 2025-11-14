@@ -17,6 +17,48 @@ Each JSON file should follow this format:
 }
 ```
 
+## Question ID Formats
+
+The filter system supports two types of question IDs:
+
+### 1. Full Section IDs
+Format: `"มาตรา X"`
+
+Example: `"มาตรา 1"`, `"มาตรา 2"`
+
+This allows the entire section to be displayed as a single flashcard.
+
+### 2. Subsection IDs
+Format: `"มาตรา X อนุ Y"`
+
+Example: `"มาตรา 1 อนุ 1"`, `"มาตรา 1 อนุ 5"`
+
+This allows specific subsections within a section to be displayed as individual flashcards. Each subsection card will show:
+- **Question**: `มาตรา X อนุ Y`
+- **Answer**: The specific subsection content
+
+### Mixing Full Sections and Subsections
+
+You can mix both formats in the same filter:
+
+```json
+{
+  "categoryId": "กฎหมายอาญา",
+  "allowedQuestionIds": [
+    "มาตรา 1 อนุ 1",
+    "มาตรา 1 อนุ 5",
+    "มาตรา 2",
+    "มาตรา 3 อนุ 7"
+  ]
+}
+```
+
+This would show:
+- Subsection 1 of Section 1 (as a separate card)
+- Subsection 5 of Section 1 (as a separate card)
+- Full Section 2 (with all its content)
+- Subsection 7 of Section 3 (as a separate card)
+
 ## Adding a New Category Filter
 
 1. **Create a new JSON file** named after the category (e.g., `civil-procedure.json`)
