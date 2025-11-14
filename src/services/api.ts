@@ -48,16 +48,16 @@ const CATEGORY_FILE_MAP: Record<string, string> = categoriesConfig.categories.re
 
 /**
  * Map complex format to simple flashcard format
+ * This function creates both whole-section flashcards and individual subsection flashcards
  * @param complexQuestion - Question in complex format (title + content with paragraphs)
- * @returns Flashcard in simple format (question + answer)
+ * @returns Array of flashcards (one for the whole section, plus one for each subsection)
  */
-function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
-  // Use title as the question
+function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[] {
+  const flashcards: Flashcard[] = [];
+
+  // First, create the whole section flashcard (existing behavior)
   const question = complexQuestion.title;
-
-  // Combine all paragraphs and subsections into the answer
   const answerParts: string[] = [];
-
   answerParts.push(complexQuestion.id);
 
   for (const paragraph of complexQuestion.content.paragraphs) {
@@ -80,11 +80,43 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard {
 
   const answer = answerParts.join("\n");
 
-  return {
+  // Add the whole section flashcard
+  flashcards.push({
     id: complexQuestion.id,
     question: question,
     answer: answer,
-  };
+  });
+
+  // Now create individual flashcards for each subsection
+  for (const paragraph of complexQuestion.content.paragraphs) {
+    if (paragraph.subsections && paragraph.subsections.length > 0) {
+      for (const subsection of paragraph.subsections) {
+        // Extract section number from complexQuestion.id (e.g., "มาตรา 1" -> "1")
+        const sectionNumber = complexQuestion.id.replace("มาตรา ", "");
+        
+        // Create subsection ID and question
+        const subsectionId = `${complexQuestion.id} อนุ ${subsection.id}`;
+        const subsectionQuestion = `มาตรา ${sectionNumber} อนุ ${subsection.id}`;
+        
+        // Build the subsection answer
+        const subsectionAnswerParts: string[] = [];
+        subsectionAnswerParts.push(subsectionId);
+        subsectionAnswerParts.push("");
+        subsectionAnswerParts.push(subsection.content);
+        
+        const subsectionAnswer = subsectionAnswerParts.join("\n");
+        
+        // Add the subsection flashcard
+        flashcards.push({
+          id: subsectionId,
+          question: subsectionQuestion,
+          answer: subsectionAnswer,
+        });
+      }
+    }
+  }
+
+  return flashcards;
 }
 
 /**
@@ -213,9 +245,9 @@ function validateCategory(category: any): asserts category is CategoryStore {
     if (question.title !== undefined && question.content !== undefined) {
       // Validate complex format
       validateComplexQuestion(question);
-      // Map complex format to simple format
-      const simpleQuestion = mapComplexToSimpleFormat(question);
-      transformedQuestions.push(simpleQuestion);
+      // Map complex format to simple format (now returns array)
+      const simpleQuestions = mapComplexToSimpleFormat(question);
+      transformedQuestions.push(...simpleQuestions);
     } else {
       // Already in simple format, just validate
       validateSimpleQuestion(question);
