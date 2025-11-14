@@ -24,20 +24,24 @@ The filter system supports two types of question IDs:
 ### 1. Full Section IDs
 Format: `"มาตรา X"`
 
-Example: `"มาตรา 1"`, `"มาตรา 2"`
+Example: `"มาตรา 2"`, `"มาตรา 59"`
 
-This allows the entire section to be displayed as a single flashcard.
+This is used for sections that **do not have subsections**. The flashcard will show:
+- **Question**: The section title (e.g., "ความผิดต่อความสงบสุขของประชาชน")
+- **Answer**: The complete section content
 
 ### 2. Subsection IDs
 Format: `"มาตรา X อนุ Y"`
 
 Example: `"มาตรา 1 อนุ 1"`, `"มาตรา 1 อนุ 5"`
 
-This allows specific subsections within a section to be displayed as individual flashcards. Each subsection card will show:
+This is used for sections that **have subsections**. When a section has subsections, only individual subsection cards are generated (no full section card). Each subsection card will show:
 - **Question**: `มาตรา X อนุ Y`
 - **Answer**: The specific subsection content
 
-### Mixing Full Sections and Subsections
+**Important:** If a section has subsections, it will **not** have a card with ID "มาตรา X". You must use the subsection IDs instead.
+
+### Mixing Both Types
 
 You can mix both formats in the same filter:
 
@@ -54,10 +58,10 @@ You can mix both formats in the same filter:
 ```
 
 This would show:
-- Subsection 1 of Section 1 (as a separate card)
-- Subsection 5 of Section 1 (as a separate card)
-- Full Section 2 (with all its content)
-- Subsection 7 of Section 3 (as a separate card)
+- Subsection 1 of Section 1 (มาตรา 1 has subsections, so only subsections are available)
+- Subsection 5 of Section 1
+- Full Section 2 (มาตรา 2 has no subsections, so the full section is shown)
+- Subsection 7 of Section 3 (มาตรา 3 has subsections, so only subsections are available)
 
 ## Adding a New Category Filter
 

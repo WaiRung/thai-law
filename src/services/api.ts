@@ -49,7 +49,7 @@ const CATEGORY_FILE_MAP: Record<string, string> = categoriesConfig.categories.re
 /**
  * Map complex format to simple flashcard format
  * @param complexQuestion - Question in complex format (title + content with paragraphs)
- * @returns Array of Flashcards - one for the full section and one for each subsection if they exist
+ * @returns Array of Flashcards - individual subsection cards if subsections exist, otherwise a single section card
  */
 function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[] {
   const flashcards: Flashcard[] = [];
@@ -92,20 +92,22 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[]
 
   const answer = answerParts.join("\n");
 
-  // Always create the full section card
-  flashcards.push({
-    id: complexQuestion.id,
-    question: question,
-    answer: answer,
-  });
-
-  // Create individual cards for each subsection
-  for (const subsection of subsectionsData) {
-    const subsectionId = `${complexQuestion.id} อนุ ${subsection.id}`;
+  // If there are subsections, only create individual subsection cards
+  if (subsectionsData.length > 0) {
+    for (const subsection of subsectionsData) {
+      const subsectionId = `${complexQuestion.id} อนุ ${subsection.id}`;
+      flashcards.push({
+        id: subsectionId,
+        question: subsectionId,
+        answer: `${complexQuestion.id}\n\n(${subsection.id}) ${subsection.content}`,
+      });
+    }
+  } else {
+    // No subsections, create a single card for the full section
     flashcards.push({
-      id: subsectionId,
-      question: subsectionId,
-      answer: `${complexQuestion.id}\n\n(${subsection.id}) ${subsection.content}`,
+      id: complexQuestion.id,
+      question: question,
+      answer: answer,
     });
   }
 
