@@ -48,9 +48,12 @@ const CATEGORY_FILE_MAP: Record<string, string> = categoriesConfig.categories.re
 
 /**
  * Map complex format to simple flashcard format
- * This function creates both whole-section flashcards and individual subsection flashcards
+ * This function creates flashcards at multiple levels:
+ * - Whole section flashcard
+ * - Individual paragraph flashcards (if multiple paragraphs exist)
+ * - Individual subsection flashcards
  * @param complexQuestion - Question in complex format (title + content with paragraphs)
- * @returns Array of flashcards (one for the whole section, plus one for each subsection)
+ * @returns Array of flashcards
  */
 function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[] {
   const flashcards: Flashcard[] = [];
@@ -87,16 +90,60 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[]
     answer: answer,
   });
 
+  // Extract section number from complexQuestion.id (e.g., "มาตรา 1" -> "1")
+  const sectionNumber = complexQuestion.id.replace("มาตรา ", "");
+
+  // Create individual flashcards for each paragraph (if multiple paragraphs exist)
+  if (complexQuestion.content.paragraphs.length > 1) {
+    for (const paragraph of complexQuestion.content.paragraphs) {
+      // Create paragraph ID and question
+      const paragraphId = `${complexQuestion.id} วรรค ${paragraph.id}`;
+      const paragraphQuestion = `มาตรา ${sectionNumber} วรรค ${paragraph.id}`;
+      
+      // Build the paragraph answer
+      const paragraphAnswerParts: string[] = [];
+      paragraphAnswerParts.push(paragraphId);
+      paragraphAnswerParts.push("");
+      paragraphAnswerParts.push(paragraph.content);
+      
+      // Add subsections if they exist
+      if (paragraph.subsections && paragraph.subsections.length > 0) {
+        for (const subsection of paragraph.subsections) {
+          paragraphAnswerParts.push("");
+          paragraphAnswerParts.push(`  (${subsection.id}) ${subsection.content}`);
+        }
+      }
+      
+      const paragraphAnswer = paragraphAnswerParts.join("\n");
+      
+      // Add the paragraph flashcard
+      flashcards.push({
+        id: paragraphId,
+        question: paragraphQuestion,
+        answer: paragraphAnswer,
+      });
+    }
+  }
+
   // Now create individual flashcards for each subsection
   for (const paragraph of complexQuestion.content.paragraphs) {
     if (paragraph.subsections && paragraph.subsections.length > 0) {
       for (const subsection of paragraph.subsections) {
-        // Extract section number from complexQuestion.id (e.g., "มาตรา 1" -> "1")
-        const sectionNumber = complexQuestion.id.replace("มาตรา ", "");
-        
         // Create subsection ID and question
-        const subsectionId = `${complexQuestion.id} อนุ ${subsection.id}`;
-        const subsectionQuestion = `มาตรา ${sectionNumber} อนุ ${subsection.id}`;
+        // If there are multiple paragraphs, include paragraph number in ID
+        // If paragraph not specified but subsection exists, default to paragraph 1
+        let subsectionId: string;
+        let subsectionQuestion: string;
+        
+        if (complexQuestion.content.paragraphs.length > 1) {
+          // Multiple paragraphs: include paragraph number
+          subsectionId = `${complexQuestion.id} วรรค ${paragraph.id} อนุ ${subsection.id}`;
+          subsectionQuestion = `มาตรา ${sectionNumber} วรรค ${paragraph.id} อนุ ${subsection.id}`;
+        } else {
+          // Single paragraph: use implicit paragraph 1 format
+          subsectionId = `${complexQuestion.id} อนุ ${subsection.id}`;
+          subsectionQuestion = `มาตรา ${sectionNumber} อนุ ${subsection.id}`;
+        }
         
         // Build the subsection answer
         const subsectionAnswerParts: string[] = [];

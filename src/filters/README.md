@@ -17,6 +17,17 @@ Each JSON file should follow this format:
 }
 ```
 
+## Question ID Formats
+
+The filtering system supports multiple levels of granularity:
+
+1. **Whole Article**: `"มาตรา 57"` - Shows the entire article
+2. **Specific Paragraph**: `"มาตรา 57 วรรค 2"` - Shows only paragraph 2 of article 57
+3. **Subsection (Implicit Paragraph 1)**: `"มาตรา 1 อนุ 7"` - Shows subsection 7 of article 1 (defaults to paragraph 1)
+4. **Subsection with Explicit Paragraph**: `"มาตรา 57 วรรค 1 อนุ 2"` - Shows subsection 2 of paragraph 1 in article 57
+
+**Note**: When a subsection is specified without a paragraph (e.g., `"มาตรา 1 อนุ 7"`), it automatically refers to paragraph 1 of that article.
+
 ## Adding a New Category Filter
 
 1. **Create a new JSON file** named after the category (e.g., `civil-procedure.json`)
