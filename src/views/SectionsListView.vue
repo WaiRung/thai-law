@@ -14,13 +14,14 @@
                     class="category-section"
                 >
                     <h3 class="category-title">{{ category.categoryName }}</h3>
-                    <div class="sections-grid">
+                    <div class="sections-list">
                         <div
                             v-for="section in category.sections"
-                            :key="section"
+                            :key="section.id"
                             class="section-item"
                         >
-                            {{ section }}
+                            <div class="section-header">{{ section.id }}</div>
+                            <div class="section-answer">{{ section.answer }}</div>
                         </div>
                     </div>
                 </div>
@@ -38,10 +39,16 @@ import { ref, onMounted } from "vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { getAllSections } from "../services/sectionService";
 
+interface SectionContent {
+    id: string;
+    question: string;
+    answer: string;
+}
+
 interface CategorySections {
     categoryId: string;
     categoryName: string;
-    sections: string[];
+    sections: SectionContent[];
 }
 
 const isLoading = ref(true);
@@ -114,28 +121,39 @@ onMounted(() => {
     border-bottom: 2px solid #e5e7eb;
 }
 
-.sections-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.75rem;
+.sections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .section-item {
-    padding: 0.75rem 1rem;
+    padding: 1.5rem;
     background: #f9fafb;
     border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    color: #374151;
-    text-align: center;
+    border-radius: 0.75rem;
     transition: all 0.2s;
 }
 
 .section-item:hover {
     background: #f3f4f6;
     border-color: #3b82f6;
-    transform: translateY(-2px);
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.section-header {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-bottom: 0.75rem;
+}
+
+.section-answer {
+    font-size: 0.875rem;
+    color: #1f2937;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .empty-state {
@@ -162,13 +180,21 @@ onMounted(() => {
         padding: 1rem;
     }
 
-    .sections-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 0.5rem;
+    .sections-list {
+        gap: 1rem;
     }
 
     .section-item {
-        padding: 0.5rem 0.75rem;
+        padding: 1rem;
+        font-size: 0.8125rem;
+    }
+
+    .section-header {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-answer {
         font-size: 0.8125rem;
     }
 }

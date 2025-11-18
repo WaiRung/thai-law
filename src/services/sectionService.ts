@@ -1,4 +1,5 @@
-import type { QuestionFilter } from "../types/flashcard";
+import type { QuestionFilter, Flashcard } from "../types/flashcard";
+import { categoryStores } from "../data/categoryStores";
 
 // Import all filter files
 import criminalFilter from "../filters/criminal/criminal.json";
@@ -7,10 +8,16 @@ import loanFilter from "../filters/civil/loan.json";
 import criminal2Filter from "../filters/criminal/criminal_2.json";
 import paragraphExampleFilter from "../filters/civil/paragraph-example.json";
 
-interface CategorySections {
+interface SectionContent {
+    id: string;
+    question: string;
+    answer: string;
+}
+
+interface CategorySectionsWithContent {
     categoryId: string;
     categoryName: string;
-    sections: string[];
+    sections: SectionContent[];
 }
 
 // Map of all available filters
@@ -23,25 +30,63 @@ const allFilters: QuestionFilter[] = [
 ];
 
 /**
- * Get all sections from all filters, grouped by category
- * @returns Promise with array of CategorySections
+ * Get all sections from all filters, grouped by category with full content
+ * @returns Promise with array of CategorySectionsWithContent
  */
-export async function getAllSections(): Promise<CategorySections[]> {
-    const categorySections: CategorySections[] = [];
+export async function getAllSections(): Promise<CategorySectionsWithContent[]> {
+    const categorySections: CategorySectionsWithContent[] = [];
 
     for (const filter of allFilters) {
         if (filter.allowedQuestionIds && filter.allowedQuestionIds.length > 0) {
+            // Find the corresponding category store
+            const categoryStore = categoryStores.find(
+                (store) => store.id === filter.categoryId
+            );
+
+            if (!categoryStore) {
+                console.warn(`Category store not found for: ${filter.categoryId}`);
+                continue;
+            }
+
+            // Create a map of question IDs to flashcard data for quick lookup
+            const questionMap = new Map<string, Flashcard>();
+            categoryStore.questions.forEach((q) => {
+                questionMap.set(q.id, q);
+            });
+
+            // Get section content for allowed question IDs
+            const sectionsWithContent: SectionContent[] = [];
+            const sortedSectionIds = [...filter.allowedQuestionIds].sort((a, b) => {
+                // Sort sections numerically by extracting the section number
+                const extractNumber = (str: string) => {
+                    const match = str.match(/มาตรา\s+(\d+)/);
+                    return match ? parseInt(match[1], 10) : 0;
+                };
+                return extractNumber(a) - extractNumber(b);
+            });
+
+            for (const sectionId of sortedSectionIds) {
+                const flashcard = questionMap.get(sectionId);
+                if (flashcard) {
+                    sectionsWithContent.push({
+                        id: flashcard.id,
+                        question: flashcard.question,
+                        answer: flashcard.answer,
+                    });
+                } else {
+                    // If no content found, just show the ID
+                    sectionsWithContent.push({
+                        id: sectionId,
+                        question: sectionId,
+                        answer: "เนื้อหายังไม่มีในระบบ",
+                    });
+                }
+            }
+
             categorySections.push({
                 categoryId: filter.categoryId,
-                categoryName: filter.categoryId, // Using categoryId as name for now
-                sections: [...filter.allowedQuestionIds].sort((a, b) => {
-                    // Sort sections numerically by extracting the section number
-                    const extractNumber = (str: string) => {
-                        const match = str.match(/มาตรา\s+(\d+)/);
-                        return match ? parseInt(match[1], 10) : 0;
-                    };
-                    return extractNumber(a) - extractNumber(b);
-                }),
+                categoryName: filter.categoryId,
+                sections: sectionsWithContent,
             });
         }
     }
