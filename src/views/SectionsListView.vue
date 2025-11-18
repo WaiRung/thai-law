@@ -38,6 +38,13 @@
 import { ref, onMounted } from "vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { getAllSections } from "../services/sectionService";
+import { categoryStores } from "../data/categoryStores";
+import { fetchCategories } from "../services/api";
+import {
+    getCategoriesCache,
+    isCacheValid,
+} from "../services/cache";
+import type { CategoryStore } from "../types/flashcard";
 
 interface SectionContent {
     id: string;
@@ -53,11 +60,37 @@ interface CategorySections {
 
 const isLoading = ref(true);
 const categorySections = ref<CategorySections[]>([]);
+const categories = ref<CategoryStore[]>([]);
+
+// Load categories from cache or fallback to static data
+const loadCategories = async () => {
+    try {
+        // First, try to load from cache
+        const cachedCategories = await getCategoriesCache();
+        const cacheIsValid = await isCacheValid();
+
+        if (cachedCategories && cachedCategories.length > 0 && cacheIsValid) {
+            categories.value = cachedCategories;
+            return;
+        }
+
+        // Try to fetch from API
+        const apiCategories = await fetchCategories();
+        categories.value = apiCategories;
+    } catch (err) {
+        // Fall back to static data
+        console.warn("Failed to load categories, using static data:", err);
+        categories.value = categoryStores;
+    }
+};
 
 const loadSections = async () => {
     isLoading.value = true;
     try {
-        categorySections.value = await getAllSections();
+        // Load categories first
+        await loadCategories();
+        // Pass categories to getAllSections
+        categorySections.value = await getAllSections(categories.value);
     } catch (error) {
         console.error("Failed to load sections:", error);
     } finally {
