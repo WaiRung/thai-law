@@ -6,6 +6,15 @@
                 <p class="welcome-subtitle">Welcome to Thai Law</p>
             </div>
 
+            <!-- Cache Status Section - Main functionality -->
+            <CacheStatus
+                :is-cache-available="isCacheAvailable"
+                :cache-metadata="cacheMetadata"
+                :is-downloading="isDownloading"
+                :download-success="downloadSuccess"
+                @reload="handleDownloadData"
+            />
+
             <div class="menu-items">
                 <button @click="navigateToFlashcards" class="menu-item">
                     <div class="menu-item-icon">🎴</div>
@@ -60,9 +69,22 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { useRouter } from "vue-router";
+import CacheStatus from "../components/CacheStatus.vue";
+import { useDataManager } from "../composables/useDataManager";
 
 const router = useRouter();
+
+// Use data manager composable
+const {
+    isCacheAvailable,
+    cacheMetadata,
+    isDownloading,
+    downloadSuccess,
+    checkCache,
+    downloadData,
+} = useDataManager();
 
 const navigateToFlashcards = () => {
     router.push({ name: "flashcard-categories" });
@@ -71,6 +93,16 @@ const navigateToFlashcards = () => {
 const navigateToSections = () => {
     router.push({ name: "sections-list" });
 };
+
+const handleDownloadData = async () => {
+    await downloadData();
+};
+
+// Initialize on mount
+onMounted(async () => {
+    // Check if cache is available on page load
+    await checkCache();
+});
 </script>
 
 <style scoped>
