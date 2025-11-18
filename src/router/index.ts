@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import MainMenuView from '../views/MainMenuView.vue'
 import CategoryView from '../views/CategoryView.vue'
 import FlashcardView from '../views/FlashcardView.vue'
+import SectionCategoriesView from '../views/SectionCategoriesView.vue'
 import SectionsListView from '../views/SectionsListView.vue'
 
 const routes: RouteRecordRaw[] = [
@@ -25,7 +26,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/sections',
     name: 'sections-list',
+    component: SectionCategoriesView,
+  },
+  {
+    path: '/sections/:categoryId',
+    name: 'sections-detail',
     component: SectionsListView,
+    props: true,
   },
 ]
 

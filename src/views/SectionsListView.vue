@@ -58,6 +58,11 @@ interface CategorySections {
     sections: SectionContent[];
 }
 
+// Accept categoryId as a prop
+const props = defineProps<{
+    categoryId: string;
+}>();
+
 const isLoading = ref(true);
 const categorySections = ref<CategorySections[]>([]);
 const categories = ref<CategoryStore[]>([]);
@@ -90,7 +95,11 @@ const loadSections = async () => {
         // Load categories first
         await loadCategories();
         // Pass categories to getAllSections
-        categorySections.value = await getAllSections(categories.value);
+        const allSections = await getAllSections(categories.value);
+        // Filter to only show the selected category
+        categorySections.value = allSections.filter(
+            cat => cat.categoryId === props.categoryId
+        );
     } catch (error) {
         console.error("Failed to load sections:", error);
     } finally {
