@@ -15,9 +15,9 @@
                     }}</span>
                 </p>
                 <p class="cache-detail-item">
-                    <span class="detail-label">จำนวนคำถาม:</span>
+                    <span class="detail-label">จำนวนมาตรา:</span>
                     <span class="detail-value"
-                        >{{ cacheMetadata?.count }} คำถาม</span
+                        >{{ cacheMetadata?.count }} มาตรา</span
                     >
                 </p>
             </div>
