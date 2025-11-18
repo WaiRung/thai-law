@@ -1,4 +1,4 @@
-# Thai Law Flashcard 🎴
+# Thai Law 🎴
 
 An interactive flashcard application for learning Thai Law, built with Vue 3, TypeScript, and Tailwind CSS, optimized for mobile devices.
 

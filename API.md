@@ -1,6 +1,6 @@
 # API Integration Guide
 
-This document describes how to integrate the Thai Law Flashcard app with a backend API.
+This document describes how to integrate the Thai Law app with a backend API.
 
 ## Overview
 

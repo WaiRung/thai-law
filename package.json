@@ -1,7 +1,7 @@
 {
   "name": "thai-law",
   "version": "1.0.0",
-  "description": "Thai Law Flashcard Game with Vue 3, TypeScript, and Tailwind CSS",
+  "description": "Thai Law Game with Vue 3, TypeScript, and Tailwind CSS",
   "type": "module",
   "scripts": {
     "dev": "vite",

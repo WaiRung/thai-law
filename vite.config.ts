@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon.svg'],
       manifest: {
-        name: 'Thai Law Flashcard',
+        name: 'Thai Law',
         short_name: 'Thai Law',
-        description: 'Learn Thai Law with interactive flashcards',
+        description: 'Learn Thai Law with multiple interactive games',
         theme_color: '#3b82f6',
         background_color: '#ffffff',
         display: 'standalone',

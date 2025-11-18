@@ -2,7 +2,7 @@
 
 ## Overview
 
-Thai Law Flashcard is now a Progressive Web App (PWA) that can be installed on your device and work offline!
+Thai Law is now a Progressive Web App (PWA) that can be installed on your device and work offline!
 
 ## Features
 
