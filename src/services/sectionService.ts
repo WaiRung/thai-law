@@ -1,4 +1,4 @@
-import type { QuestionFilter, Flashcard } from "../types/flashcard";
+import type { QuestionFilter, Flashcard, CategoryStore } from "../types/flashcard";
 import { categoryStores } from "../data/categoryStores";
 
 // Import all filter files
@@ -31,15 +31,18 @@ const allFilters: QuestionFilter[] = [
 
 /**
  * Get all sections from all filters, grouped by category with full content
+ * @param categories - Optional array of CategoryStore to use instead of static data
  * @returns Promise with array of CategorySectionsWithContent
  */
-export async function getAllSections(): Promise<CategorySectionsWithContent[]> {
+export async function getAllSections(categories?: CategoryStore[]): Promise<CategorySectionsWithContent[]> {
     const categorySections: CategorySectionsWithContent[] = [];
+    // Use provided categories or fall back to static data
+    const categoryData = categories || categoryStores;
 
     for (const filter of allFilters) {
         if (filter.allowedQuestionIds && filter.allowedQuestionIds.length > 0) {
             // Find the corresponding category store
-            const categoryStore = categoryStores.find(
+            const categoryStore = categoryData.find(
                 (store) => store.id === filter.categoryId
             );
 
