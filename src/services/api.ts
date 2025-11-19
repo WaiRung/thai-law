@@ -83,11 +83,12 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[]
 
   const answer = answerParts.join("\n");
 
-  // Add the whole section flashcard
+  // Add the whole section flashcard with title
   flashcards.push({
     id: complexQuestion.id,
     question: question,
     answer: answer,
+    title: complexQuestion.title, // Preserve title for display in section list
   });
 
   // Extract section number from complexQuestion.id (e.g., "มาตรา 1" -> "1")

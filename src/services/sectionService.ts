@@ -12,6 +12,7 @@ interface SectionContent {
     id: string;
     question: string;
     answer: string;
+    title?: string; // Optional title for whole sections
 }
 
 interface CategorySectionsWithContent {
@@ -75,6 +76,7 @@ export async function getAllSections(categories?: CategoryStore[]): Promise<Cate
                         id: flashcard.id,
                         question: flashcard.question,
                         answer: flashcard.answer,
+                        title: flashcard.title, // Include title if present
                     });
                 } else {
                     // If no content found, just show the ID
