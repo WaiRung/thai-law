@@ -21,6 +21,9 @@
                             class="section-item"
                         >
                             <div class="section-header">{{ section.id }}</div>
+                            <div v-if="section.title && !section.id.includes('อนุ')" class="section-title">
+                                {{ section.title }}
+                            </div>
                             <div class="section-answer">{{ section.answer }}</div>
                         </div>
                     </div>
@@ -50,6 +53,7 @@ interface SectionContent {
     id: string;
     question: string;
     answer: string;
+    title?: string; // Optional title for whole sections
 }
 
 interface CategorySections {
@@ -190,6 +194,17 @@ onMounted(() => {
     margin-bottom: 0.75rem;
 }
 
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #059669;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    background: #f0fdf4;
+    border-left: 4px solid #059669;
+    border-radius: 0.25rem;
+}
+
 .section-answer {
     font-size: 0.875rem;
     color: #1f2937;
@@ -234,6 +249,12 @@ onMounted(() => {
     .section-header {
         font-size: 0.875rem;
         margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        padding: 0.375rem;
     }
 
     .section-answer {
