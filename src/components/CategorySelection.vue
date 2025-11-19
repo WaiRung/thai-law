@@ -15,7 +15,7 @@
                 <div class="category-icon">{{ category.icon }}</div>
                 <div class="category-name-th">{{ category.nameTh }}</div>
                 <div class="category-name-en">{{ category.nameEn }}</div>
-                <div class="category-count">{{ category.count }} บัตรคำ</div>
+                <div class="category-count">{{ category.count }} คำถาม</div>
             </button>
         </div>
     </div>

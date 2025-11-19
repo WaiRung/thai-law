@@ -20,7 +20,7 @@
                     <div class="menu-item-icon">🎴</div>
                     <div class="menu-item-content">
                         <h3 class="menu-item-title">Flashcards</h3>
-                        <p class="menu-item-description">เรียนรู้กฎหมายไทยด้วยบัตรคำศัพท์</p>
+                        <p class="menu-item-description">เรียนรู้กฎหมายไทยด้วย Flashcards</p>
                     </div>
                     <div class="menu-item-arrow">
                         <svg
