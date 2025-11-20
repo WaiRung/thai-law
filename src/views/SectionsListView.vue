@@ -24,7 +24,7 @@
                             <div v-if="section.title && !section.id.includes('อนุ')" class="section-title">
                                 {{ section.title }}
                             </div>
-                            <div class="section-answer">{{ section.answer }}</div>
+                            <div class="section-answer">{{ cleanAnswerForDisplay(section.answer) }}</div>
                         </div>
                     </div>
                 </div>
@@ -70,6 +70,39 @@ const props = defineProps<{
 const isLoading = ref(true);
 const categorySections = ref<CategorySections[]>([]);
 const categories = ref<CategoryStore[]>([]);
+
+/**
+ * Clean answer text by removing redundant section ID and subsection IDs
+ * This is only for display in SectionsListView, not for flashcards
+ * @param answer - The original answer text
+ * @returns Cleaned answer text without redundant IDs
+ */
+const cleanAnswerForDisplay = (answer: string): string => {
+    const lines = answer.split('\n');
+    const cleanedLines: string[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Skip the first line if it's a section ID (e.g., "มาตรา 1", "มาตรา 1 วรรค 2")
+        if (i === 0 && line.trim().startsWith('มาตรา')) {
+            continue;
+        }
+        
+        // Remove subsection ID prefix like "  (1) " or "  (2) "
+        // Pattern: optional spaces + (number) + space + content
+        const subsectionMatch = line.match(/^(\s*)\((\d+)\)\s+(.+)$/);
+        if (subsectionMatch) {
+            const [, spaces, , content] = subsectionMatch;
+            // Keep the same indentation but remove the ID
+            cleanedLines.push(`${spaces}${content}`);
+        } else {
+            cleanedLines.push(line);
+        }
+    }
+    
+    return cleanedLines.join('\n').trim();
+};
 
 // Load categories from cache or fallback to static data
 const loadCategories = async () => {
