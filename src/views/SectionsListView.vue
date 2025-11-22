@@ -47,7 +47,7 @@
                             <div v-if="section.title && !section.id.includes('อนุ')" class="section-title">
                                 {{ section.title }}
                             </div>
-                            <div class="section-answer">{{ cleanAnswerForDisplay(section.answer) }}</div>
+                            <div class="section-answer">{{ cleanAnswerForDisplay(section.answer, section) }}</div>
                         </div>
                     </div>
                 </div>
@@ -111,35 +111,43 @@ const currentSectionId = ref("");
 const currentDescriptions = ref<DescriptionContent[]>([]);
 
 /**
- * Clean answer text by removing redundant section ID and subsection IDs
- * This is only for display in SectionsListView, not for flashcards
+ * Clean answer text by removing redundant section ID
+ * For full sections (with title and no "อนุ" in ID): Keep subsection IDs like (1), (2)
+ * For individual subsection flashcards: Remove subsection ID prefix
  * @param answer - The original answer text
- * @returns Cleaned answer text without redundant IDs
+ * @param section - The section object to determine if it's a full section
+ * @returns Cleaned answer text
  */
-const cleanAnswerForDisplay = (answer: string): string => {
+const cleanAnswerForDisplay = (answer: string, section: SectionContent): string => {
     const lines = answer.split('\n');
     const cleanedLines: string[] = [];
-    
+    const isFullSection = section.title && !section.id.includes('อนุ');
+
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        
+
         // Skip the first line if it's a section ID (e.g., "มาตรา 1", "มาตรา 1 วรรค 2")
         if (i === 0 && line.trim().startsWith('มาตรา')) {
             continue;
         }
-        
-        // Remove subsection ID prefix like "  (1) " or "  (2) "
-        // Pattern: optional spaces + (number) + space + content
+
+        // Handle subsection IDs based on section type
         const subsectionMatch = line.match(/^(\s*)\((\d+)\)\s+(.+)$/);
         if (subsectionMatch) {
-            const [, spaces, , content] = subsectionMatch;
-            // Keep the same indentation but remove the ID
-            cleanedLines.push(`${spaces}${content}`);
+            const [, spaces, id, content] = subsectionMatch;
+
+            if (isFullSection) {
+                // For full sections: Keep the subsection ID
+                cleanedLines.push(`${spaces}(${id}) ${content}`);
+            } else {
+                // For individual subsection flashcards: Remove the ID
+                cleanedLines.push(`${spaces}${content}`);
+            }
         } else {
             cleanedLines.push(line);
         }
     }
-    
+
     return cleanedLines.join('\n').trim();
 };
 
