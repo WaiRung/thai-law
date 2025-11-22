@@ -373,9 +373,22 @@ onMounted(() => {
         font-size: 0.8125rem;
     }
 
+    .section-header-row {
+        margin-bottom: 0.5rem;
+    }
+
     .section-header {
         font-size: 0.875rem;
-        margin-bottom: 0.5rem;
+    }
+
+    .info-button-list {
+        width: 28px;
+        height: 28px;
+    }
+
+    .info-button-list .info-icon {
+        width: 16px;
+        height: 16px;
     }
 
     .section-title {

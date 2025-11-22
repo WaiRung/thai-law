@@ -236,23 +236,24 @@ export async function clearCache(): Promise<void> {
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([STORE_NAME], "readwrite");
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.delete("categories");
+    const transaction = db.transaction([STORE_NAME, DESCRIPTIONS_STORE_NAME], "readwrite");
+    const categoriesStore = transaction.objectStore(STORE_NAME);
+    const descriptionsStore = transaction.objectStore(DESCRIPTIONS_STORE_NAME);
+    
+    categoriesStore.delete("categories");
+    descriptionsStore.delete("descriptions");
     
     return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
+      transaction.oncomplete = () => {
         console.log("Cache cleared successfully");
+        db.close();
         resolve();
       };
       
-      request.onerror = () => {
-        console.error("Failed to clear cache:", request.error);
-        reject(new Error("Failed to clear cache"));
-      };
-      
-      transaction.oncomplete = () => {
+      transaction.onerror = () => {
+        console.error("Failed to clear cache:", transaction.error);
         db.close();
+        reject(new Error("Failed to clear cache"));
       };
     });
   } catch (error) {

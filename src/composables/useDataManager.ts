@@ -77,7 +77,7 @@ export function useDataManager() {
       } catch (descError) {
         console.warn('Failed to fetch descriptions, continuing without them:', descError);
         // Don't fail the entire download if descriptions fail
-        await saveDescriptionsCache({});
+        // Skip saving to avoid overwriting existing cache with empty data
       }
 
       // Update cache metadata
