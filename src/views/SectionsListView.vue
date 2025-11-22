@@ -20,7 +20,30 @@
                             :key="section.id"
                             class="section-item"
                         >
-                            <div class="section-header">{{ section.id }}</div>
+                            <div class="section-header-row">
+                                <div class="section-header">{{ section.id }}</div>
+                                <button
+                                    v-if="hasDescription(section)"
+                                    class="info-button-list"
+                                    @click="showDescriptionModal(section)"
+                                    aria-label="ดูคำอธิบายเพิ่มเติม"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="info-icon"
+                                    >
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                </button>
+                            </div>
                             <div v-if="section.title && !section.id.includes('อนุ')" class="section-title">
                                 {{ section.title }}
                             </div>
@@ -33,6 +56,14 @@
                     <p>ไม่พบข้อมูลมาตรา</p>
                 </div>
             </div>
+
+            <!-- Description Modal -->
+            <DescriptionModal
+                :isOpen="isDescriptionModalOpen"
+                :sectionId="currentSectionId"
+                :descriptions="currentDescriptions"
+                @close="closeDescriptionModal"
+            />
         </template>
     </main>
 </template>
@@ -40,20 +71,24 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
+import DescriptionModal from "../components/DescriptionModal.vue";
 import { getAllSections } from "../services/sectionService";
 import { categoryStores } from "../data/categoryStores";
 import { fetchCategories } from "../services/api";
 import {
     getCategoriesCache,
     isCacheValid,
+    getDescriptionsCache,
 } from "../services/cache";
 import type { CategoryStore } from "../types/flashcard";
+import type { DescriptionContent, DescriptionCache } from "../types/description";
 
 interface SectionContent {
     id: string;
     question: string;
     answer: string;
     title?: string; // Optional title for whole sections
+    descriptions?: DescriptionContent[]; // Optional descriptions
 }
 
 interface CategorySections {
@@ -70,6 +105,10 @@ const props = defineProps<{
 const isLoading = ref(true);
 const categorySections = ref<CategorySections[]>([]);
 const categories = ref<CategoryStore[]>([]);
+const descriptionsCache = ref<DescriptionCache>({});
+const isDescriptionModalOpen = ref(false);
+const currentSectionId = ref("");
+const currentDescriptions = ref<DescriptionContent[]>([]);
 
 /**
  * Clean answer text by removing redundant section ID and subsection IDs
@@ -126,11 +165,29 @@ const loadCategories = async () => {
     }
 };
 
+const hasDescription = (section: SectionContent): boolean => {
+    return section.descriptions !== undefined && section.descriptions.length > 0;
+};
+
+const showDescriptionModal = (section: SectionContent) => {
+    if (section.descriptions && section.descriptions.length > 0) {
+        currentSectionId.value = section.id;
+        currentDescriptions.value = section.descriptions;
+        isDescriptionModalOpen.value = true;
+    }
+};
+
+const closeDescriptionModal = () => {
+    isDescriptionModalOpen.value = false;
+};
+
 const loadSections = async () => {
     isLoading.value = true;
     try {
         // Load categories first
         await loadCategories();
+        // Load descriptions from cache
+        descriptionsCache.value = await getDescriptionsCache();
         // Pass categories to getAllSections
         const allSections = await getAllSections(categories.value);
         // Filter to only show the selected category
@@ -220,11 +277,48 @@ onMounted(() => {
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 }
 
+.section-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
 .section-header {
     font-size: 1rem;
     font-weight: 700;
     color: #3b82f6;
-    margin-bottom: 0.75rem;
+}
+
+.info-button-list {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.info-button-list:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.info-button-list:active {
+    transform: scale(0.95);
+}
+
+.info-button-list .info-icon {
+    width: 18px;
+    height: 18px;
+    color: white;
 }
 
 .section-title {
@@ -279,9 +373,22 @@ onMounted(() => {
         font-size: 0.8125rem;
     }
 
+    .section-header-row {
+        margin-bottom: 0.5rem;
+    }
+
     .section-header {
         font-size: 0.875rem;
-        margin-bottom: 0.5rem;
+    }
+
+    .info-button-list {
+        width: 28px;
+        height: 28px;
+    }
+
+    .info-button-list .info-icon {
+        width: 16px;
+        height: 16px;
     }
 
     .section-title {
