@@ -1,11 +1,13 @@
 import type { CategoryStore, CacheMetadata } from "../types/flashcard";
+import type { DescriptionCache } from "../types/description";
 
 /**
  * IndexedDB Database Configuration
  */
 const DB_NAME = "thai-law-db";
 const STORE_NAME = "categories-cache";
-const DB_VERSION = 1;
+const DESCRIPTIONS_STORE_NAME = "descriptions";
+const DB_VERSION = 2;
 const CACHE_VERSION = "1.0";
 
 /**
@@ -56,6 +58,12 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: "id" });
         console.log("Created IndexedDB object store:", STORE_NAME);
+      }
+      
+      // Create descriptions object store if it doesn't exist
+      if (!db.objectStoreNames.contains(DESCRIPTIONS_STORE_NAME)) {
+        db.createObjectStore(DESCRIPTIONS_STORE_NAME, { keyPath: "id" });
+        console.log("Created IndexedDB object store:", DESCRIPTIONS_STORE_NAME);
       }
     };
   });
@@ -282,5 +290,103 @@ export async function isCacheValid(maxAgeInDays: number = 7): Promise<boolean> {
   } catch (error) {
     console.error("Error checking cache validity:", error);
     return false;
+  }
+}
+
+/**
+ * Descriptions cache entry structure
+ */
+interface DescriptionsCacheEntry {
+  id: string;
+  data: DescriptionCache;
+  timestamp: number;
+  version: string;
+}
+
+/**
+ * Save descriptions to IndexedDB cache
+ * @param descriptions - DescriptionCache to save
+ */
+export async function saveDescriptionsCache(descriptions: DescriptionCache): Promise<void> {
+  try {
+    const db = await openDatabase();
+    
+    const transaction = db.transaction([DESCRIPTIONS_STORE_NAME], "readwrite");
+    const store = transaction.objectStore(DESCRIPTIONS_STORE_NAME);
+    
+    const cacheEntry: DescriptionsCacheEntry = {
+      id: "descriptions",
+      data: descriptions,
+      timestamp: Date.now(),
+      version: CACHE_VERSION,
+    };
+    
+    const request = store.put(cacheEntry);
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        console.log("Descriptions cached successfully", {
+          count: Object.keys(descriptions).length,
+        });
+        resolve();
+      };
+      
+      request.onerror = () => {
+        console.error("Failed to cache descriptions:", request.error);
+        reject(new Error("Failed to save descriptions cache"));
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    });
+  } catch (error) {
+    console.error("Error saving descriptions cache:", error);
+    throw error;
+  }
+}
+
+/**
+ * Retrieve cached descriptions from IndexedDB
+ * @returns Promise with cached descriptions or empty object if not found
+ */
+export async function getDescriptionsCache(): Promise<DescriptionCache> {
+  try {
+    const db = await openDatabase();
+    
+    const transaction = db.transaction([DESCRIPTIONS_STORE_NAME], "readonly");
+    const store = transaction.objectStore(DESCRIPTIONS_STORE_NAME);
+    const request = store.get("descriptions");
+    
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        const cacheEntry = request.result as DescriptionsCacheEntry | undefined;
+        
+        if (!cacheEntry) {
+          console.log("No cached descriptions found");
+          resolve({});
+          return;
+        }
+        
+        console.log("Loaded descriptions from cache", {
+          count: Object.keys(cacheEntry.data).length,
+          timestamp: new Date(cacheEntry.timestamp).toISOString(),
+        });
+        
+        resolve(cacheEntry.data);
+      };
+      
+      request.onerror = () => {
+        console.error("Failed to retrieve descriptions cache:", request.error);
+        reject(new Error("Failed to retrieve descriptions cache"));
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    });
+  } catch (error) {
+    console.error("Error retrieving descriptions cache:", error);
+    return {}; // Return empty object on error instead of throwing
   }
 }

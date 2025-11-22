@@ -1,5 +1,7 @@
 import type { QuestionFilter, Flashcard, CategoryStore } from "../types/flashcard";
+import type { DescriptionContent } from "../types/description";
 import { categoryStores } from "../data/categoryStores";
+import { getDescriptionsCache } from "./cache";
 
 // Import all filter files
 import criminalFilter from "../filters/criminal/criminal.json";
@@ -13,6 +15,7 @@ interface SectionContent {
     question: string;
     answer: string;
     title?: string; // Optional title for whole sections
+    descriptions?: DescriptionContent[]; // Optional descriptions
 }
 
 interface CategorySectionsWithContent {
@@ -39,6 +42,9 @@ export async function getAllSections(categories?: CategoryStore[]): Promise<Cate
     const categorySections: CategorySectionsWithContent[] = [];
     // Use provided categories or fall back to static data
     const categoryData = categories || categoryStores;
+
+    // Load descriptions from cache
+    const descriptionsCache = await getDescriptionsCache();
 
     for (const filter of allFilters) {
         if (filter.allowedQuestionIds && filter.allowedQuestionIds.length > 0) {
@@ -71,12 +77,15 @@ export async function getAllSections(categories?: CategoryStore[]): Promise<Cate
 
             for (const sectionId of sortedSectionIds) {
                 const flashcard = questionMap.get(sectionId);
+                const description = descriptionsCache[sectionId];
+                
                 if (flashcard) {
                     sectionsWithContent.push({
                         id: flashcard.id,
                         question: flashcard.question,
                         answer: flashcard.answer,
                         title: flashcard.title, // Include title if present
+                        descriptions: description?.descriptions, // Include descriptions if available
                     });
                 } else {
                     // If no content found, just show the ID
@@ -84,6 +93,7 @@ export async function getAllSections(categories?: CategoryStore[]): Promise<Cate
                         id: sectionId,
                         question: sectionId,
                         answer: "เนื้อหายังไม่มีในระบบ",
+                        descriptions: description?.descriptions,
                     });
                 }
             }

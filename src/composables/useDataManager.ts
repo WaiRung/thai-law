@@ -6,7 +6,10 @@ import {
   getCacheMetadata,
   clearCache,
   isCacheValid,
+  saveDescriptionsCache,
 } from '../services/cache';
+import { fetchAllDescriptions } from '../services/descriptionService';
+import { getCategorySections } from '../services/sectionService';
 import type { CategoryStore, CacheMetadata } from '../types/flashcard';
 
 /**
@@ -52,8 +55,30 @@ export function useDataManager() {
       console.log('Fetching fresh data from API...');
       const apiCategories = await fetchCategories();
 
-      // Save to IndexedDB on success
+      // Save categories to IndexedDB on success
       await saveCategoriesCache(apiCategories);
+
+      // Fetch descriptions for all sections across all categories
+      try {
+        console.log('Fetching descriptions...');
+        const categoriesWithSections = await Promise.all(
+          apiCategories.map(async (category) => {
+            const sectionIds = await getCategorySections(category.id);
+            return {
+              categoryId: category.id,
+              sectionIds,
+            };
+          })
+        );
+
+        const descriptions = await fetchAllDescriptions(categoriesWithSections);
+        await saveDescriptionsCache(descriptions);
+        console.log('Descriptions cached successfully');
+      } catch (descError) {
+        console.warn('Failed to fetch descriptions, continuing without them:', descError);
+        // Don't fail the entire download if descriptions fail
+        await saveDescriptionsCache({});
+      }
 
       // Update cache metadata
       const metadata = await getCacheMetadata();

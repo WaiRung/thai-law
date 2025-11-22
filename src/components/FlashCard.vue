@@ -9,6 +9,27 @@
                 <div class="tap-hint">แตะเพื่อดูคำตอบ</div>
             </div>
             <div class="flashcard-face flashcard-back">
+                <button
+                    v-if="hasDescription"
+                    class="info-button"
+                    @click.stop="handleShowDescription"
+                    aria-label="ดูคำอธิบายเพิ่มเติม"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="info-icon"
+                    >
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                </button>
                 <div class="card-content">
                     <div class="card-label">คำตอบ</div>
                     <div class="card-answer">{{ card.answer }}</div>
@@ -25,16 +46,23 @@ import type { Flashcard } from "../types/flashcard";
 interface Props {
     card: Flashcard;
     isFlipped: boolean;
+    hasDescription: boolean;
+    sectionId: string;
 }
 
 defineProps<Props>();
 
 const emit = defineEmits<{
     flip: [];
+    showDescription: [];
 }>();
 
 const handleFlip = () => {
     emit("flip");
+};
+
+const handleShowDescription = () => {
+    emit("showDescription");
 };
 </script>
 
@@ -86,6 +114,40 @@ const handleFlip = () => {
     position: absolute;
     top: 0;
     left: 0;
+}
+
+.info-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 20;
+    padding: 0;
+}
+
+.info-button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.7);
+    transform: scale(1.05);
+}
+
+.info-button:active {
+    transform: scale(0.95);
+}
+
+.info-icon {
+    width: 20px;
+    height: 20px;
+    color: white;
 }
 
 .card-content {

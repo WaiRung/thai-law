@@ -12,9 +12,20 @@
             <FlashCard
                 :card="currentCard"
                 :isFlipped="isFlipped"
+                :hasDescription="currentCardHasDescription"
+                :sectionId="currentCard.id"
                 @flip="toggleFlip"
+                @showDescription="showDescriptionModal"
             />
         </div>
+
+        <!-- Description Modal -->
+        <DescriptionModal
+            :isOpen="isDescriptionModalOpen"
+            :sectionId="currentCard.id"
+            :descriptions="currentDescriptions"
+            @close="closeDescriptionModal"
+        />
 
         <!-- Controls -->
         <FlashcardControls
@@ -34,17 +45,20 @@ import { useRouter, useRoute } from "vue-router";
 import FlashCard from "../components/FlashCard.vue";
 import ProgressBar from "../components/ProgressBar.vue";
 import FlashcardControls from "../components/FlashcardControls.vue";
+import DescriptionModal from "../components/DescriptionModal.vue";
 import { categoryStores } from "../data/categoryStores";
 import { fetchCategories } from "../services/api";
 import {
     getCategoriesCache,
     isCacheValid,
+    getDescriptionsCache,
 } from "../services/cache";
 import { filterQuestions } from "../services/filterService";
 import type {
     Flashcard,
     CategoryStore,
 } from "../types/flashcard";
+import type { DescriptionCache } from "../types/description";
 import { useHeader } from "../composables/useHeader";
 
 const router = useRouter();
@@ -60,6 +74,9 @@ const currentIndex = ref(0);
 const isFlipped = ref(false);
 const completedCards = ref(new Set<string>());
 const categories = ref<CategoryStore[]>([]);
+const descriptionsCache = ref<DescriptionCache>({});
+const isDescriptionModalOpen = ref(false);
+const currentDescriptions = ref<Array<{ content: string }>>([]);
 
 // Touch gesture state
 const touchStartX = ref(0);
@@ -77,6 +94,11 @@ const flashcardViewRef = ref<HTMLElement | null>(null);
 // Computed
 const currentCard = computed(() => cards.value[currentIndex.value]);
 const totalCards = computed(() => cards.value.length);
+const currentCardHasDescription = computed(() => {
+    if (!currentCard.value) return false;
+    const description = descriptionsCache.value[currentCard.value.id];
+    return description && description.descriptions && description.descriptions.length > 0;
+});
 
 // Load categories from cache or fallback to static data
 const loadCategories = async () => {
@@ -167,6 +189,19 @@ const resetProgress = () => {
     isFlipped.value = false;
 };
 
+const showDescriptionModal = () => {
+    if (!currentCard.value) return;
+    const description = descriptionsCache.value[currentCard.value.id];
+    if (description && description.descriptions) {
+        currentDescriptions.value = description.descriptions;
+        isDescriptionModalOpen.value = true;
+    }
+};
+
+const closeDescriptionModal = () => {
+    isDescriptionModalOpen.value = false;
+};
+
 // Touch gesture handlers
 const handleTouchStart = (e: TouchEvent) => {
     touchStartX.value = e.touches[0].clientX;
@@ -237,6 +272,9 @@ watch(() => categories.value.length, (newLength) => {
 onMounted(async () => {
     await loadCategories();
     // loadFlashcards will be called by the watch above when categories are loaded
+    
+    // Load descriptions from cache
+    descriptionsCache.value = await getDescriptionsCache();
     
     // Add touch listeners after DOM update
     await nextTick();
