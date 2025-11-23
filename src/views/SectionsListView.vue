@@ -303,7 +303,7 @@ onMounted(() => {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
     border: none;
     cursor: pointer;
     display: flex;
@@ -316,7 +316,7 @@ onMounted(() => {
 
 .info-button-list:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
 }
 
 .info-button-list:active {
