@@ -109,7 +109,7 @@ onUnmounted(() => {
 .modal-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #667eea;
+  color: #14b8a6;
   margin: 0;
   padding: 1.5rem;
   border-bottom: 2px solid #e5e7eb;
@@ -149,7 +149,7 @@ onUnmounted(() => {
 }
 
 .close-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -158,12 +158,12 @@ onUnmounted(() => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
 }
 
 .close-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4);
 }
 
 .close-button:active {

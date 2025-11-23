@@ -103,12 +103,12 @@ const handleShowDescription = () => {
 }
 
 .flashcard-front {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
     color: white;
 }
 
 .flashcard-back {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
     color: white;
     transform: rotateY(180deg);
     position: absolute;

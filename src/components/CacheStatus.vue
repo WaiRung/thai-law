@@ -211,11 +211,11 @@ const handleReload = () => {
 }
 
 .download-btn {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
 }
 
 .download-btn:hover:not(:disabled) {
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
 }
 
 .success-message {

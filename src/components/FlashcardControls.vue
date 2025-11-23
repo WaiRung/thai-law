@@ -154,12 +154,12 @@ const handleReset = () => {
 }
 
 .control-shuffle {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
 }
 
 .control-shuffle:hover {
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
 }
 
 .btn-icon {
