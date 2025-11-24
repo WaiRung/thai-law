@@ -8,7 +8,7 @@ import { categoryStores } from "../data/categoryStores";
 import { getDescriptionsCache } from "./cache";
 
 // Import all filter files
-import succession from "../filters/civil/succession.json";
+import criminalFilter from "../filters/criminal/criminal.json";
 import civilFilter from "../filters/civil/civil.json";
 import loanFilter from "../filters/civil/loan.json";
 import criminal2Filter from "../filters/criminal/criminal_2.json";
@@ -32,7 +32,7 @@ interface CategorySectionsWithContent {
 const allFilters: QuestionFilter[] = [
   loanFilter,
   criminal2Filter,
-  succession,
+  criminalFilter,
   civilFilter,
   paragraphExampleFilter,
 ];
