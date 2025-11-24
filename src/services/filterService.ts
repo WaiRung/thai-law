@@ -1,7 +1,7 @@
 import type { QuestionFilter, Flashcard } from "../types/flashcard";
 
 // Import filter files explicitly
-import succession from "../filters/civil/succession.json";
+import criminalFilter from "../filters/criminal/criminal.json";
 import civilFilter from "../filters/civil/civil.json";
 import loanFilter from "../filters/civil/loan.json";
 import criminal2Filter from "../filters/criminal/criminal_2.json"
@@ -14,7 +14,7 @@ const categoryFilters: Record<string, QuestionFilter> = {
   "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า": loanFilter,
   "กฎหมายอาญา 2": criminal2Filter,
   "กฎหมายแพ่ง": civilFilter,
-  "กฎหมายมรดก": succession,
+  "กฎหมายอาญา": criminalFilter,
   // Add more filters as needed
 };
 

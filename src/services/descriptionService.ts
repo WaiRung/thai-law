@@ -12,7 +12,7 @@ const DESCRIPTION_API_BASE_URL =
  */
 const CATEGORY_API_MAP: Record<string, string> = {
   "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า": "civil_and_commercial_code",
-  "กฎหมายมรดก": "civil_and_commercial_code",
+  "กฎหมายอาญา": "criminal_code",
   "กฎหมายอาญา 2": "criminal_code",
   "กฎหมายวิธีพิจารณาความแพ่ง": "civil_procedure_code",
 };
