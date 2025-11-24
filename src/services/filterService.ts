@@ -1,22 +1,62 @@
 import type { QuestionFilter, Flashcard } from "../types/flashcard";
+import categoriesConfig from "../config/categories.json";
 
-// Import filter files explicitly
-import criminalFilter from "../filters/criminal/criminal.json";
-import civilFilter from "../filters/civil/civil.json";
-import loanFilter from "../filters/civil/loan.json";
-import criminal2Filter from "../filters/criminal/criminal_2.json"
+// Import all filter files using Vite's glob import
+const filterModules = import.meta.glob<{ default: QuestionFilter }>("../filters/**/*.json");
 
 // Map to store category filters as Sets for efficient lookup
 const filterCache = new Map<string, Set<string>>();
 
-// Map category IDs to imported filter data
-const categoryFilters: Record<string, QuestionFilter> = {
-  "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า": loanFilter,
-  "อาญา 2": criminal2Filter,
-  "กฎหมายแพ่ง": civilFilter,
-  "กฎหมายอาญา": criminalFilter,
-  // Add more filters as needed
-};
+// Cache for loaded filter data
+const loadedFilters = new Map<string, QuestionFilter>();
+
+/**
+ * Dynamically load a filter file based on the filename
+ * @param filterFilename - Relative path to filter file (e.g., "civil/loan.json")
+ * @returns Promise with QuestionFilter or null if not found
+ */
+async function loadFilterFile(filterFilename: string): Promise<QuestionFilter | null> {
+  try {
+    const path = `../filters/${filterFilename}`;
+    const loader = filterModules[path];
+    if (!loader) {
+      console.error(`Filter not found in glob imports: ${filterFilename}`);
+      return null;
+    }
+    const filterModule = await loader();
+    return filterModule.default;
+  } catch (error) {
+    console.error(`Failed to load filter: ${filterFilename}`, error);
+    return null;
+  }
+}
+
+/**
+ * Get filter data for a category ID
+ * @param categoryId - The category ID
+ * @returns Promise with QuestionFilter or null if not found
+ */
+async function getCategoryFilterData(categoryId: string): Promise<QuestionFilter | null> {
+  // Check if already loaded
+  if (loadedFilters.has(categoryId)) {
+    return loadedFilters.get(categoryId)!;
+  }
+
+  // Find the category in config
+  const categoryConfig = categoriesConfig.categories.find(c => c.id === categoryId);
+  if (!categoryConfig || !categoryConfig.filterFilename) {
+    console.log(`No filter filename found for category: ${categoryId}`);
+    return null;
+  }
+
+  // Load the filter
+  const filter = await loadFilterFile(categoryConfig.filterFilename);
+  if (filter) {
+    loadedFilters.set(categoryId, filter);
+  }
+  
+  return filter;
+}
 
 /**
  * Load allowed question IDs for a category
@@ -31,7 +71,7 @@ export async function loadCategoryFilter(
   }
 
   // Get the filter data for this category
-  const filter = categoryFilters[categoryId];
+  const filter = await getCategoryFilterData(categoryId);
   if (!filter) {
     // No filter defined for this category - allow all questions
     console.log(`No filter defined for category: ${categoryId}, allowing all questions`);

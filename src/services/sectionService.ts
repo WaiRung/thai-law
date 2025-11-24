@@ -6,13 +6,7 @@ import type {
 import type { DescriptionContent } from "../types/description";
 import { categoryStores } from "../data/categoryStores";
 import { getDescriptionsCache } from "./cache";
-
-// Import all filter files
-import criminalFilter from "../filters/criminal/criminal.json";
-import civilFilter from "../filters/civil/civil.json";
-import loanFilter from "../filters/civil/loan.json";
-import criminal2Filter from "../filters/criminal/criminal_2.json";
-import paragraphExampleFilter from "../filters/civil/paragraph-example.json";
+import categoriesConfig from "../config/categories.json";
 
 interface SectionContent {
   id: string;
@@ -28,14 +22,65 @@ interface CategorySectionsWithContent {
   sections: SectionContent[];
 }
 
-// Map of all available filters
-const allFilters: QuestionFilter[] = [
-  loanFilter,
-  criminal2Filter,
-  criminalFilter,
-  civilFilter,
-  paragraphExampleFilter,
-];
+/**
+ * Import all filter files using Vite's glob import
+ * This ensures Vite can statically analyze the imports at build time
+ */
+const filterModules = import.meta.glob<{ default: QuestionFilter }>("../filters/**/*.json");
+
+/**
+ * Dynamically load a filter file based on the filename
+ * @param filterFilename - Relative path to filter file (e.g., "civil/loan.json")
+ * @returns Promise with QuestionFilter or null if not found
+ */
+async function loadFilter(filterFilename: string): Promise<QuestionFilter | null> {
+  try {
+    const path = `../filters/${filterFilename}`;
+    const loader = filterModules[path];
+    if (!loader) {
+      console.error(`Filter not found in glob imports: ${filterFilename}`);
+      return null;
+    }
+    const filterModule = await loader();
+    return filterModule.default;
+  } catch (error) {
+    console.error(`Failed to load filter: ${filterFilename}`, error);
+    return null;
+  }
+}
+
+/**
+ * Load all filters dynamically from the config
+ * @returns Promise with array of QuestionFilter
+ */
+async function loadAllFilters(): Promise<QuestionFilter[]> {
+  const filters: QuestionFilter[] = [];
+  
+  for (const category of categoriesConfig.categories) {
+    if (category.filterFilename) {
+      const filter = await loadFilter(category.filterFilename);
+      if (filter) {
+        filters.push(filter);
+      }
+    }
+  }
+  
+  return filters;
+}
+
+// Cache for loaded filters to avoid repeated dynamic imports
+let filtersCache: QuestionFilter[] | null = null;
+
+/**
+ * Get all available filters (with caching)
+ * @returns Promise with array of QuestionFilter
+ */
+async function getAllFilters(): Promise<QuestionFilter[]> {
+  if (filtersCache === null) {
+    filtersCache = await loadAllFilters();
+  }
+  return filtersCache;
+}
 
 /**
  * Get all sections from all filters, grouped by category with full content
@@ -51,6 +96,9 @@ export async function getAllSections(
 
   // Load descriptions from cache
   const descriptionsCache = await getDescriptionsCache();
+
+  // Load all filters dynamically
+  const allFilters = await getAllFilters();
 
   for (const filter of allFilters) {
     if (filter.allowedQuestionIds && filter.allowedQuestionIds.length > 0) {
@@ -123,6 +171,7 @@ export async function getAllSections(
 export async function getCategorySections(
   categoryId: string,
 ): Promise<string[]> {
+  const allFilters = await getAllFilters();
   const filter = allFilters.find((f) => f.categoryId === categoryId);
   if (!filter || !filter.allowedQuestionIds) {
     return [];
@@ -140,9 +189,10 @@ export async function getCategorySections(
 
 /**
  * Get total count of sections across all categories
- * @returns Total number of sections
+ * @returns Promise with total number of sections
  */
-export function getTotalSectionsCount(): number {
+export async function getTotalSectionsCount(): Promise<number> {
+  const allFilters = await getAllFilters();
   return allFilters.reduce(
     (total, filter) => total + (filter.allowedQuestionIds?.length || 0),
     0,
