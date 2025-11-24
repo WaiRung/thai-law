@@ -1,4 +1,5 @@
 import type { SectionDescription, DescriptionCache } from "../types/description";
+import categoriesConfig from "../config/categories.json";
 
 /**
  * API Configuration
@@ -7,15 +8,21 @@ const DESCRIPTION_API_BASE_URL =
   "https://raw.githubusercontent.com/WaiRung/thai-law-data/main/api/descriptions";
 
 /**
- * Category ID to API path mapping
+ * Build category ID to API path mapping from config
  * Maps Thai category names to their corresponding API directory names
  */
-const CATEGORY_API_MAP: Record<string, string> = {
-  "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า": "civil_and_commercial_code",
-  "กฎหมายอาญา": "criminal_code",
-  "อาญา 2": "criminal_code",
-  "กฎหมายวิธีพิจารณาความแพ่ง": "civil_procedure_code",
-};
+function buildCategoryApiMap(): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const category of categoriesConfig.categories) {
+    if (category.descriptionApiPath) {
+      map[category.id] = category.descriptionApiPath;
+    }
+  }
+  return map;
+}
+
+// Cache the mapping to avoid rebuilding it repeatedly
+const CATEGORY_API_MAP = buildCategoryApiMap();
 
 /**
  * Parse section ID to filename format

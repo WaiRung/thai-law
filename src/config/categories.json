@@ -6,6 +6,8 @@
       "nameEn": "Loan, Deposit and Warehousing",
       "icon": "⚖️",
       "apiFilename": "civil_and_commercial_code",
+      "filterFilename": "civil/loan.json",
+      "descriptionApiPath": "civil_and_commercial_code",
       "questions": [
       ]
     },
@@ -15,6 +17,8 @@
       "nameEn": "Criminal Code 2",
       "icon": "⚖️",
       "apiFilename": "criminal_code",
+      "filterFilename": "criminal/criminal_2.json",
+      "descriptionApiPath": "criminal_code",
       "questions": [
       ]
     },
@@ -24,6 +28,8 @@
       "nameEn": "Criminal Law",
       "icon": "🔨",
       "apiFilename": "criminal_code",
+      "filterFilename": "criminal/criminal.json",
+      "descriptionApiPath": "criminal_code",
       "questions": [
         {
           "id": "มาตรา 2",
@@ -38,12 +44,25 @@
       "nameEn": "Civil Procedure Code",
       "icon": "📋",
       "apiFilename": "civil_procedure_code",
+      "filterFilename": "civil/paragraph-example.json",
+      "descriptionApiPath": "civil_procedure_code",
       "questions": [
         {
           "id": "มาตรา 7",
           "question": "การจดทะเบียนสมรสต้องทำที่ไหน?",
           "answer": "ต้องทำที่สำนักงานเขตหรืออำเภอที่ฝ่ายหนึ่งฝ่ายใดมีภูมิลำเนาอยู่"
         }
+      ]
+    },
+    {
+      "id": "กฎหมายแพ่ง",
+      "nameTh": "กฎหมายแพ่ง",
+      "nameEn": "Civil Law",
+      "icon": "⚖️",
+      "apiFilename": "civil_and_commercial_code",
+      "filterFilename": "civil/civil.json",
+      "descriptionApiPath": "civil_and_commercial_code",
+      "questions": [
       ]
     }
   ]
