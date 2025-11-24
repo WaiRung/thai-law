@@ -13,7 +13,7 @@ const DESCRIPTION_API_BASE_URL =
 const CATEGORY_API_MAP: Record<string, string> = {
   "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า": "civil_and_commercial_code",
   "กฎหมายอาญา": "criminal_code",
-  "อาญา 2": "criminal_code",
+  "กฎหมายอาญา 2": "criminal_code",
   "กฎหมายวิธีพิจารณาความแพ่ง": "civil_procedure_code",
 };
 
@@ -58,7 +58,7 @@ export async function fetchSectionDescription(
 
   try {
     const response = await fetch(url);
-    
+
     // 404 is expected for sections without descriptions
     if (response.status === 404) {
       return null;
