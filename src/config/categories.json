@@ -23,19 +23,14 @@
       ]
     },
     {
-      "id": "กฎหมายอาญา",
-      "nameTh": "กฎหมายอาญา",
-      "nameEn": "Criminal Law",
+      "id": "กฎหมายมรดก",
+      "nameTh": "กฎหมายมรดก",
+      "nameEn": "Succession Law",
       "icon": "🔨",
-      "apiFilename": "criminal_code",
-      "filterFilename": "criminal/criminal.json",
-      "descriptionApiPath": "criminal_code",
+      "apiFilename": "civil_and_commercial_code",
+      "filterFilename": "civil/succession.json",
+      "descriptionApiPath": "civil_and_commercial_code",
       "questions": [
-        {
-          "id": "มาตรา 2",
-          "question": "อายุความคดีอาญาทั่วไป คือกี่ปี?",
-          "answer": "อายุความคดีอาญาทั่วไปคือ 10 ปี นับแต่วันที่กระทำความผิด"
-        }
       ]
     },
     {
