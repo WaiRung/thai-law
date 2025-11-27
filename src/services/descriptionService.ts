@@ -114,9 +114,10 @@ export async function fetchSectionDescriptions(
   for (const sectionId of sectionIds) {
     const sectionNumber = extractSectionNumber(sectionId);
     if (sectionNumber) {
-      const existingIds = sectionNumberToIds.get(sectionNumber) || [];
-      existingIds.push(sectionId);
-      sectionNumberToIds.set(sectionNumber, existingIds);
+      if (!sectionNumberToIds.has(sectionNumber)) {
+        sectionNumberToIds.set(sectionNumber, []);
+      }
+      sectionNumberToIds.get(sectionNumber)!.push(sectionId);
     }
   }
 
