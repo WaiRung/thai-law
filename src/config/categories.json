@@ -50,13 +50,13 @@
       ]
     },
     {
-      "id": "กฎหมายแพ่ง",
-      "nameTh": "กฎหมายแพ่ง",
-      "nameEn": "Civil Law",
-      "icon": "⚖️",
-      "apiFilename": "civil_and_commercial_code",
-      "filterFilename": "civil/civil.json",
-      "descriptionApiPath": "civil_and_commercial_code",
+      "id": "กฎหมายรัฐธรรมนูญ",
+      "nameTh": "กฎหมายรัฐธรรมนูญ",
+      "nameEn": "Constitutional Law",
+      "icon": "🏛️",
+      "apiFilename": "constitution_code",
+      "filterFilename": "constitution/finance.json",
+      "descriptionApiPath": "constitution_code",
       "questions": [
       ]
     }
