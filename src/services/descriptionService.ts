@@ -25,16 +25,25 @@ function buildCategoryApiMap(): Record<string, string> {
 const CATEGORY_API_MAP = buildCategoryApiMap();
 
 /**
+ * Extract the base section number from a section ID
+ * @param sectionId - Section ID in Thai format (e.g., "มาตรา 656", "มาตรา 656 วรรค 2")
+ * @returns The section number as a string or null if not found
+ */
+function extractSectionNumber(sectionId: string): string | null {
+  const match = sectionId.match(/มาตรา\s+(\d+)/);
+  return match ? match[1] : null;
+}
+
+/**
  * Parse section ID to filename format
  * Converts "มาตรา XXX" or "มาตรา XXX วรรค Y" to "section_XXX.json"
  * @param sectionId - Section ID in Thai format (e.g., "มาตรา 656", "มาตรา 656 วรรค 2")
  * @returns Filename in format "section_XXX.json"
  */
 function parseSectionIdToFilename(sectionId: string): string {
-  // Extract the section number from formats like "มาตรา 656" or "มาตรา 656 วรรค 2"
-  const match = sectionId.match(/มาตรา\s+(\d+)/);
-  if (match) {
-    return `section_${match[1]}.json`;
+  const sectionNumber = extractSectionNumber(sectionId);
+  if (sectionNumber) {
+    return `section_${sectionNumber}.json`;
   }
   return "";
 }
@@ -51,13 +60,13 @@ export async function fetchSectionDescription(
 ): Promise<SectionDescription | null> {
   const categoryPath = CATEGORY_API_MAP[categoryId];
   if (!categoryPath) {
-    console.warn(`No API mapping found for category: ${categoryId}`);
+    // Category doesn't have a description API path configured - this is expected
     return null;
   }
 
   const filename = parseSectionIdToFilename(sectionId);
   if (!filename) {
-    console.warn(`Could not parse section ID: ${sectionId}`);
+    // Section ID format is not recognized - this is expected for some sections
     return null;
   }
 
@@ -66,26 +75,28 @@ export async function fetchSectionDescription(
   try {
     const response = await fetch(url);
 
-    // 404 is expected for sections without descriptions
+    // 404 is expected for sections without descriptions - handle silently
     if (response.status === 404) {
       return null;
     }
 
+    // Other non-success responses are also handled gracefully
     if (!response.ok) {
-      console.warn(`Failed to fetch description from ${url}: ${response.status}`);
       return null;
     }
 
     const data = await response.json();
     return data as SectionDescription;
-  } catch (error) {
-    console.error(`Error fetching description for ${sectionId}:`, error);
+  } catch {
+    // Network errors or JSON parsing errors - handle silently
+    // These are expected when description files don't exist
     return null;
   }
 }
 
 /**
  * Fetch descriptions for multiple sections
+ * Deduplicates requests by base section number to avoid redundant network calls
  * @param categoryId - Category ID (Thai name)
  * @param sectionIds - Array of section IDs
  * @returns Promise with DescriptionCache
@@ -96,14 +107,36 @@ export async function fetchSectionDescriptions(
 ): Promise<DescriptionCache> {
   const cache: DescriptionCache = {};
 
-  // Fetch all descriptions in parallel
-  const promises = sectionIds.map((sectionId) =>
-    fetchSectionDescription(categoryId, sectionId).then((description) => {
-      if (description) {
+  // Group section IDs by their base section number to avoid duplicate requests
+  // e.g., "มาตรา 7", "มาตรา 7 วรรค 1", "มาตรา 7 วรรค 2" all map to section number "7"
+  const sectionNumberToIds: Map<string, string[]> = new Map();
+
+  for (const sectionId of sectionIds) {
+    const sectionNumber = extractSectionNumber(sectionId);
+    if (sectionNumber) {
+      const existingIds = sectionNumberToIds.get(sectionNumber) || [];
+      existingIds.push(sectionId);
+      sectionNumberToIds.set(sectionNumber, existingIds);
+    }
+  }
+
+  // Fetch descriptions only for unique base section numbers
+  const uniqueSectionNumbers = Array.from(sectionNumberToIds.keys());
+
+  // Create a representative section ID for each unique section number
+  // Use the format "มาตรา XXX" to fetch the description
+  const promises = uniqueSectionNumbers.map(async (sectionNumber) => {
+    const representativeId = `มาตรา ${sectionNumber}`;
+    const description = await fetchSectionDescription(categoryId, representativeId);
+
+    if (description) {
+      // Apply the fetched description to all section IDs that share this base section number
+      const relatedIds = sectionNumberToIds.get(sectionNumber) || [];
+      for (const sectionId of relatedIds) {
         cache[sectionId] = description;
       }
-    })
-  );
+    }
+  });
 
   await Promise.all(promises);
   return cache;
