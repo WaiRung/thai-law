@@ -39,7 +39,7 @@
       "nameEn": "Civil Procedure Code",
       "icon": "📋",
       "apiFilename": "civil_procedure_code",
-      "filterFilename": "civil/paragraph-example.json",
+      "filterFilename": "civil_procedure/civil_procedure_2.json",
       "descriptionApiPath": "civil_procedure_code",
       "questions": [
         {
