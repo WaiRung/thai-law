@@ -50,9 +50,9 @@
       ]
     },
     {
-      "id": "กฎหมายรัฐธรรมนูญ",
-      "nameTh": "กฎหมายรัฐธรรมนูญ",
-      "nameEn": "Constitutional Law",
+      "id": "กฎหมายสถาบันการเงิน",
+      "nameTh": "กฎหมายสถาบันการเงิน",
+      "nameEn": "Financial Institution Law",
       "icon": "🏛️",
       "apiFilename": "constitution_code",
       "filterFilename": "constitution/finance.json",
