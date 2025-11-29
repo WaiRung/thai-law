@@ -45,6 +45,17 @@
       ]
     },
     {
+      "id": "กฎหมายวิธีพิจารณาความอาญา 1",
+      "nameTh": "กฎหมายวิธีพิจารณาความอาญา 1",
+      "nameEn": "Criminal Procedure Code 1",
+      "icon": "🧾",
+      "apiFilename": "criminal_procedure_code",
+      "filterFilename": "criminal_procedure/criminal_procedure_1.json",
+      "descriptionApiPath": "criminal_procedure_code",
+      "questions": [
+      ]
+    },
+    {
       "id": "กฎหมายสถาบันการเงิน",
       "nameTh": "กฎหมายสถาบันการเงิน",
       "nameEn": "Financial Institution Law",

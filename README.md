@@ -21,6 +21,7 @@ An interactive flashcard application for learning Thai Law, built with Vue 3, Ty
   - Civil and Commercial Law (กฎหมายแพ่ง)
   - Criminal Law (กฎหมายอาญา)
   - Civil Procedure Code (กฎหมายวิธีพิจารณาความแพ่ง)
+  - Criminal Procedure Code (กฎหมายวิธีพิจารณาความอาญา)
   - Constitution Code (กฎหมายรัฐธรรมนูญ)
 
 ### PWA Features 📱
