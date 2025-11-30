@@ -64,6 +64,11 @@ export async function getHighScore(categoryId: string): Promise<HighScore | null
           return;
         }
         
+        // Backward compatibility: if totalScore is missing, use score as fallback
+        if (highScore.totalScore === undefined) {
+          highScore.totalScore = highScore.score;
+        }
+        
         resolve(highScore);
       };
       
@@ -100,6 +105,10 @@ export async function getAllHighScores(): Promise<Map<string, HighScore>> {
         const highScoreMap = new Map<string, HighScore>();
         
         for (const score of highScores) {
+          // Backward compatibility: if totalScore is missing, use score as fallback
+          if (score.totalScore === undefined) {
+            score.totalScore = score.score;
+          }
           highScoreMap.set(score.categoryId, score);
         }
         
@@ -127,13 +136,15 @@ export async function getAllHighScores(): Promise<Map<string, HighScore>> {
  * @param score - Number of correct answers
  * @param percentage - Percentage score
  * @param totalQuestions - Total questions in the quiz
+ * @param totalScore - Total score including time bonus
  * @returns Promise with boolean indicating if it was a new high score
  */
 export async function checkAndSaveHighScore(
   categoryId: string,
   score: number,
   percentage: number,
-  totalQuestions: number
+  totalQuestions: number,
+  totalScore: number
 ): Promise<boolean> {
   try {
     const existingHighScore = await getHighScore(categoryId);
@@ -141,8 +152,8 @@ export async function checkAndSaveHighScore(
     // Check if this is a new high score
     // A new high score is achieved if:
     // 1. No existing high score exists, OR
-    // 2. The new percentage is higher than the existing one
-    const isNewHighScore = !existingHighScore || percentage > existingHighScore.percentage;
+    // 2. The new totalScore (including time bonus) is higher than the existing one
+    const isNewHighScore = !existingHighScore || totalScore > existingHighScore.totalScore;
     
     if (isNewHighScore) {
       const newHighScore: HighScore = {
@@ -150,6 +161,7 @@ export async function checkAndSaveHighScore(
         score,
         percentage,
         totalQuestions,
+        totalScore,
         achievedAt: Date.now(),
       };
       

@@ -128,7 +128,8 @@ onMounted(async () => {
         props.categoryId,
         props.result.correctAnswers,
         props.result.percentage,
-        props.result.totalQuestions
+        props.result.totalQuestions,
+        props.result.totalScore
     );
     
     // Load the current high score (which may be the one we just saved)
