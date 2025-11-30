@@ -64,6 +64,7 @@ const handleBack = () => {
     max-width: 800px;
     margin: 0 auto;
     position: relative;
+    padding: 0 3rem;
 }
 
 .back-btn {
@@ -125,6 +126,7 @@ const handleBack = () => {
 
     .header-content {
         gap: 0.5rem;
+        padding: 0 2.5rem;
     }
 
     .back-btn {
