@@ -35,6 +35,10 @@
         <div v-if="isAnswered" class="result-feedback" :class="{ 'correct': isCorrect, 'incorrect': !isCorrect }">
             <div class="result-icon">{{ isCorrect ? '🎉' : '😅' }}</div>
             <div class="result-text">{{ isCorrect ? 'ถูกต้อง!' : 'ไม่ถูกต้อง' }}</div>
+            <div v-if="lastAnswerScore && isCorrect" class="score-breakdown">
+                <span class="score-item">+{{ lastAnswerScore.baseScore }} คะแนน</span>
+                <span v-if="lastAnswerScore.timeBonus > 0" class="score-item time-bonus">+{{ lastAnswerScore.timeBonus.toFixed(2) }} โบนัสเวลา</span>
+            </div>
             <div v-if="!isCorrect" class="correct-answer">
                 คำตอบที่ถูกต้อง: {{ question.correctAnswer }}
             </div>
@@ -44,7 +48,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { QuizQuestion } from "../types/quiz";
+import type { QuizQuestion, QuizAnswerScore } from "../types/quiz";
 
 interface Props {
     question: QuizQuestion;
@@ -53,6 +57,7 @@ interface Props {
     selectedAnswer: string | null;
     isAnswered: boolean;
     isCorrect: boolean | null;
+    lastAnswerScore: QuizAnswerScore | null;
 }
 
 const props = defineProps<Props>();
@@ -255,6 +260,28 @@ const selectChoice = (choice: string) => {
     margin-top: 0.5rem;
     font-size: 0.875rem;
     color: #6b7280;
+}
+
+.score-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.score-item {
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #065f46;
+}
+
+.score-item.time-bonus {
+    background: rgba(251, 191, 36, 0.3);
+    color: #b45309;
 }
 
 @media (max-width: 640px) {
