@@ -10,6 +10,7 @@
 
             <CategorySelection
                 :categories="categoryList"
+                :high-scores="highScores"
                 @select="selectCategory"
             />
         </template>
@@ -23,9 +24,11 @@ import CategorySelection from "../components/CategorySelection.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { categoryStores } from "../data/categoryStores";
 import { filterQuestions } from "../services/filterService";
+import { getAllHighScores } from "../services/highScoreService";
 import { useDataManager } from "../composables/useDataManager";
 import { useHeader } from "../composables/useHeader";
 import type { CategoryStore } from "../types/flashcard";
+import type { HighScore } from "../types/quiz";
 
 const router = useRouter();
 const { setHeader, resetHeader } = useHeader();
@@ -33,6 +36,7 @@ const { setHeader, resetHeader } = useHeader();
 // Category Management
 const categories = ref<CategoryStore[]>([]);
 const filteredCounts = ref<Record<string, number>>({});
+const highScores = ref<Map<string, HighScore>>(new Map());
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const isUsingFallback = ref(false);
@@ -90,6 +94,15 @@ const loadCategoriesData = async () => {
     }
 };
 
+// Load high scores
+const loadHighScores = async () => {
+    try {
+        highScores.value = await getAllHighScores();
+    } catch (err) {
+        console.warn("Failed to load high scores:", err);
+    }
+};
+
 // Category Selection Method
 const selectCategory = (categoryId: string) => {
     // Navigate to quiz view using router
@@ -101,8 +114,11 @@ onMounted(async () => {
     // Set header to indicate QuizLaw mode
     setHeader("QuizLaw", "เลือกหมวดหมู่");
 
-    // Load categories
-    await loadCategoriesData();
+    // Load categories and high scores in parallel
+    await Promise.all([
+        loadCategoriesData(),
+        loadHighScores(),
+    ]);
     
     // Calculate filtered counts for each category
     await Promise.all(categories.value.map(async (store) => {

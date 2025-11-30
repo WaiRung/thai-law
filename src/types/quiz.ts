@@ -58,3 +58,14 @@ export interface QuizAnswerScore {
   timeBonus: number;           // Bonus based on remaining time
   totalPoints: number;         // Total points for this answer
 }
+
+/**
+ * High score entry for a specific category
+ */
+export interface HighScore {
+  categoryId: string;          // Category ID
+  score: number;               // Number of correct answers
+  percentage: number;          // Percentage score
+  totalQuestions: number;      // Total questions in the quiz
+  achievedAt: number;          // Timestamp when the high score was achieved
+}

@@ -16,12 +16,20 @@
                 <div class="category-name-th">{{ category.nameTh }}</div>
                 <div class="category-name-en">{{ category.nameEn }}</div>
                 <div class="category-count">{{ category.count }} คำถาม</div>
+                
+                <!-- High Score Display -->
+                <div v-if="getHighScore(category.id)" class="category-high-score">
+                    <span class="high-score-icon">🏆</span>
+                    <span class="high-score-text">{{ getHighScore(category.id)?.percentage }}%</span>
+                </div>
             </button>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import type { HighScore } from "../types/quiz";
+
 interface Category {
     id: string;
     nameTh: string;
@@ -32,9 +40,10 @@ interface Category {
 
 interface Props {
     categories: Category[];
+    highScores?: Map<string, HighScore>;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
     select: [categoryId: string];
@@ -42,6 +51,10 @@ const emit = defineEmits<{
 
 const selectCategory = (categoryId: string) => {
     emit("select", categoryId);
+};
+
+const getHighScore = (categoryId: string): HighScore | undefined => {
+    return props.highScores?.get(categoryId);
 };
 </script>
 
@@ -130,6 +143,27 @@ const selectCategory = (categoryId: string) => {
     padding: 0.375rem 0.75rem;
     background-color: #eff6ff;
     border-radius: 9999px;
+}
+
+.category-high-score {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 9999px;
+    border: 1px solid #f59e0b;
+}
+
+.high-score-icon {
+    font-size: 0.875rem;
+}
+
+.high-score-text {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #b45309;
 }
 
 @media (max-width: 640px) {

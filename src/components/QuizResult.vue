@@ -5,6 +5,12 @@
             <h2 class="result-title">{{ resultTitle }}</h2>
             <p class="result-subtitle">Quiz Completed!</p>
             
+            <!-- New High Score Badge -->
+            <div v-if="isNewHighScore" class="new-high-score-badge">
+                <span class="badge-icon">🏅</span>
+                <span class="badge-text">สถิติใหม่!</span>
+            </div>
+            
             <div class="score-display">
                 <div class="score-circle" :class="scoreClass">
                     <span class="score-percentage">{{ result.percentage }}%</span>
@@ -15,6 +21,18 @@
             <div class="total-score-container">
                 <div class="total-score-value">{{ result.correctAnswers }} / {{ result.totalQuestions }}</div>
                 <div class="total-score-label">คะแนนรวม</div>
+            </div>
+            
+            <!-- High Score Display -->
+            <div v-if="highScore" class="high-score-container">
+                <div class="high-score-header">
+                    <span class="high-score-icon">🏆</span>
+                    <span class="high-score-title">สถิติสูงสุด</span>
+                </div>
+                <div class="high-score-details">
+                    <div class="high-score-value">{{ highScore.score }} / {{ highScore.totalQuestions }} ({{ highScore.percentage }}%)</div>
+                    <div class="high-score-date">{{ formattedHighScoreDate }}</div>
+                </div>
             </div>
             
             <div class="stats-container">
@@ -49,11 +67,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import type { QuizResult } from "../types/quiz";
+import { ref, computed, onMounted } from "vue";
+import type { QuizResult, HighScore } from "../types/quiz";
+import { checkAndSaveHighScore, getHighScore, formatThaiDate } from "../services/highScoreService";
 
 interface Props {
     result: QuizResult;
+    categoryId: string;
 }
 
 const props = defineProps<Props>();
@@ -62,6 +82,10 @@ const emit = defineEmits<{
     playAgain: [];
     back: [];
 }>();
+
+// High score state
+const highScore = ref<HighScore | null>(null);
+const isNewHighScore = ref(false);
 
 const resultEmoji = computed(() => {
     if (props.result.percentage >= 80) return "🏆";
@@ -84,6 +108,11 @@ const scoreClass = computed(() => {
     return "needs-improvement";
 });
 
+const formattedHighScoreDate = computed(() => {
+    if (!highScore.value) return "";
+    return formatThaiDate(highScore.value.achievedAt);
+});
+
 const handlePlayAgain = () => {
     emit("playAgain");
 };
@@ -91,6 +120,20 @@ const handlePlayAgain = () => {
 const handleBack = () => {
     emit("back");
 };
+
+// Check and save high score on mount
+onMounted(async () => {
+    // Check and save if this is a new high score
+    isNewHighScore.value = await checkAndSaveHighScore(
+        props.categoryId,
+        props.result.correctAnswers,
+        props.result.percentage,
+        props.result.totalQuestions
+    );
+    
+    // Load the current high score (which may be the one we just saved)
+    highScore.value = await getHighScore(props.categoryId);
+});
 </script>
 
 <style scoped>
@@ -127,7 +170,33 @@ const handleBack = () => {
 .result-subtitle {
     font-size: 1rem;
     color: #6b7280;
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 1rem 0;
+}
+
+.new-high-score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-radius: 9999px;
+    margin-bottom: 1rem;
+    animation: bounce 0.5s ease-in-out;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.badge-icon {
+    font-size: 1.25rem;
+}
+
+.badge-text {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1f2937;
 }
 
 .score-display {
@@ -191,6 +260,52 @@ const handleBack = () => {
     font-size: 0.875rem;
     color: #92400e;
     font-weight: 600;
+}
+
+.high-score-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+    border-radius: 1rem;
+    border: 2px solid #8b5cf6;
+}
+
+.high-score-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.high-score-icon {
+    font-size: 1.25rem;
+}
+
+.high-score-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6d28d9;
+}
+
+.high-score-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.high-score-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #5b21b6;
+}
+
+.high-score-date {
+    font-size: 0.75rem;
+    color: #7c3aed;
+    margin-top: 0.25rem;
 }
 
 .stats-container {

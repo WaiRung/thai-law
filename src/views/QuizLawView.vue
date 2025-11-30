@@ -53,6 +53,7 @@
         <QuizResult
             v-else-if="showResult"
             :result="quizResult"
+            :category-id="categoryId"
             @play-again="handlePlayAgain"
             @back="handleBack"
         />
