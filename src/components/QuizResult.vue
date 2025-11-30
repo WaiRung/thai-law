@@ -10,6 +10,16 @@
                     <span class="score-percentage">{{ result.percentage }}%</span>
                 </div>
             </div>
+
+            <!-- Total Score with Time Bonus -->
+            <div class="total-score-container">
+                <div class="total-score-value">{{ result.totalScore.toFixed(1) }}</div>
+                <div class="total-score-label">คะแนนรวม</div>
+                <div v-if="result.timeBonus > 0" class="time-bonus-badge">
+                    <span class="bonus-icon">⚡</span>
+                    <span>+{{ result.timeBonus.toFixed(2) }} โบนัสเวลา</span>
+                </div>
+            </div>
             
             <div class="stats-container">
                 <div class="stat-item">
@@ -162,6 +172,46 @@ const handleBack = () => {
     font-size: 2rem;
     font-weight: 700;
     color: #1f2937;
+}
+
+.total-score-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 1rem;
+    border: 2px solid #f59e0b;
+}
+
+.total-score-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #b45309;
+}
+
+.total-score-label {
+    font-size: 0.875rem;
+    color: #92400e;
+    font-weight: 600;
+}
+
+.time-bonus-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #b45309;
+}
+
+.bonus-icon {
+    font-size: 0.875rem;
 }
 
 .stats-container {

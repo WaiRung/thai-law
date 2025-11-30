@@ -35,4 +35,25 @@ export interface QuizResult {
   correctAnswers: number;
   score: number;
   percentage: number;
+  timeBonus: number;        // Total time bonus earned
+  totalScore: number;       // Total score including time bonus
+}
+
+/**
+ * Time settings for quiz countdown
+ */
+export interface QuizTimeSettings {
+  baseTimePerQuestion: number;      // Base time in seconds per question
+  timePerCharacter: number;         // Additional time per character in question
+  maxTimePerQuestion: number;       // Maximum time allowed per question
+  minTimePerQuestion: number;       // Minimum time per question
+}
+
+/**
+ * Score calculation for a single answer
+ */
+export interface QuizAnswerScore {
+  baseScore: number;           // Base score for correct answer (1 point)
+  timeBonus: number;           // Bonus based on remaining time
+  totalPoints: number;         // Total points for this answer
 }
