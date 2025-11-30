@@ -157,8 +157,11 @@ function getSubsectionChoices(
   const neededCount = 3;
   const availableSubsections = [...otherSubsections];
   
-  // Add random nearby numbers if not enough
-  while (availableSubsections.length < neededCount) {
+  // Add random nearby numbers if not enough (with safety counter to prevent infinite loop)
+  let attempts = 0;
+  const maxAttempts = 50;
+  while (availableSubsections.length < neededCount && attempts < maxAttempts) {
+    attempts++;
     const randomOffset = Math.floor(Math.random() * 10) + 1;
     const randomNum = targetSubsection + (Math.random() > 0.5 ? randomOffset : -randomOffset);
     if (randomNum > 0 && !availableSubsections.includes(randomNum) && randomNum !== targetSubsection) {
