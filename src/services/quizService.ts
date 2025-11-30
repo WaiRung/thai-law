@@ -194,14 +194,72 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 /**
+ * Weight multipliers for different question types
+ * Whole section questions have slightly more weight than subsection questions
+ */
+const WEIGHT_SECTION = 1.5;      // Whole section questions (มาตรา X)
+const WEIGHT_PARAGRAPH = 1.2;   // Paragraph questions (มาตรา X วรรค Y)
+const WEIGHT_SUBSECTION = 1.0;  // Subsection questions (มาตรา X อนุ Z)
+
+/**
+ * Get the weight for a parsed card based on its type
+ */
+function getCardWeight(parsed: ParsedId): number {
+  if (parsed.subsection !== undefined) {
+    return WEIGHT_SUBSECTION;
+  } else if (parsed.paragraph !== undefined) {
+    return WEIGHT_PARAGRAPH;
+  } else {
+    return WEIGHT_SECTION;
+  }
+}
+
+/**
+ * Select items from an array using weighted random selection
+ * Items with higher weights are more likely to be selected
+ */
+function weightedRandomSelect<T>(
+  items: { item: T; weight: number }[],
+  count: number
+): T[] {
+  const selected: T[] = [];
+  const remaining = [...items];
+  
+  while (selected.length < count && remaining.length > 0) {
+    // Calculate total weight
+    const totalWeight = remaining.reduce((sum, item) => sum + item.weight, 0);
+    
+    // Generate a random value in the range [0, totalWeight)
+    const random = Math.random() * totalWeight;
+    
+    // Find the item that corresponds to this random value
+    let cumulative = 0;
+    let selectedIndex = remaining.length - 1; // Default to last item for edge cases
+    for (let i = 0; i < remaining.length; i++) {
+      cumulative += remaining[i].weight;
+      if (random < cumulative) {
+        selectedIndex = i;
+        break;
+      }
+    }
+    
+    // Add the selected item and remove it from remaining
+    selected.push(remaining[selectedIndex].item);
+    remaining.splice(selectedIndex, 1);
+  }
+  
+  return selected;
+}
+
+/**
  * Generate quiz questions from flashcards
  * @param flashcards - Array of flashcards to generate questions from
- * @param count - Number of questions to generate (default: 10)
+ * @param count - Number of questions to generate (default: 20)
  * @returns Array of quiz questions
  */
 export function generateQuizQuestions(
   flashcards: Flashcard[],
-  count: number = 10
+  count: number = 20
 ): QuizQuestion[] {
   // Parse all flashcard IDs to understand the structure
   const parsedCards: { card: Flashcard; parsed: ParsedId }[] = [];
@@ -220,12 +278,19 @@ export function generateQuizQuestions(
   // Extract unique sections, paragraphs, and subsections for choice generation
   const allSections = [...new Set(parsedCards.map(p => p.parsed.section))].sort((a, b) => a - b);
   
-  // Shuffle and take the requested count
-  const shuffledCards = shuffleArray(parsedCards).slice(0, count);
+  // Create weighted items for selection
+  // Whole section questions have slightly more weight than subsection questions
+  const weightedCards = parsedCards.map(cardData => ({
+    item: cardData,
+    weight: getCardWeight(cardData.parsed)
+  }));
+  
+  // Use weighted random selection to pick cards
+  const selectedCards = weightedRandomSelect(weightedCards, count);
   
   const questions: QuizQuestion[] = [];
   
-  for (const { card, parsed } of shuffledCards) {
+  for (const { card, parsed } of selectedCards) {
     // Determine question type
     let type: 'section' | 'paragraph' | 'subsection';
     let correctAnswer: string;
