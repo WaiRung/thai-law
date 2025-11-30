@@ -11,14 +11,10 @@
                 </div>
             </div>
 
-            <!-- Total Score with Time Bonus -->
+            <!-- Total Score -->
             <div class="total-score-container">
-                <div class="total-score-value">{{ result.totalScore.toFixed(1) }} / {{ result.maxScore }}</div>
+                <div class="total-score-value">{{ result.correctAnswers }} / {{ result.totalQuestions }}</div>
                 <div class="total-score-label">คะแนนรวม</div>
-                <div v-if="result.timeBonus > 0" class="time-bonus-badge">
-                    <span class="bonus-icon">⚡</span>
-                    <span>+{{ result.timeBonus.toFixed(2) }} โบนัสเวลา</span>
-                </div>
             </div>
             
             <div class="stats-container">
@@ -195,23 +191,6 @@ const handleBack = () => {
     font-size: 0.875rem;
     color: #92400e;
     font-weight: 600;
-}
-
-.time-bonus-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-top: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #b45309;
-}
-
-.bonus-icon {
-    font-size: 0.875rem;
 }
 
 .stats-container {

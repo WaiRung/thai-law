@@ -37,7 +37,6 @@
             <div class="result-text">{{ isCorrect ? 'ถูกต้อง!' : 'ไม่ถูกต้อง' }}</div>
             <div v-if="lastAnswerScore && isCorrect" class="score-breakdown">
                 <span class="score-item">+{{ lastAnswerScore.baseScore }} คะแนน</span>
-                <span v-if="lastAnswerScore.timeBonus > 0" class="score-item time-bonus">+{{ lastAnswerScore.timeBonus.toFixed(2) }} โบนัสเวลา</span>
             </div>
             <div v-if="!isCorrect" class="correct-answer">
                 คำตอบที่ถูกต้อง: {{ question.correctAnswer }}
@@ -277,11 +276,6 @@ const selectChoice = (choice: string) => {
     font-size: 0.875rem;
     font-weight: 600;
     color: #065f46;
-}
-
-.score-item.time-bonus {
-    background: rgba(251, 191, 36, 0.3);
-    color: #b45309;
 }
 
 @media (max-width: 640px) {
