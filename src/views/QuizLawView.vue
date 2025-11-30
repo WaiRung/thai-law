@@ -100,9 +100,13 @@ const categories = ref<CategoryStore[]>([]);
 const remainingTime = ref(0);
 const totalTimeForQuestion = ref(0);
 const timerInterval = ref<ReturnType<typeof setInterval> | null>(null);
+const timerStartTime = ref(0);
 const totalScore = ref(0);
 const totalTimeBonus = ref(0);
 const lastAnswerScore = ref<QuizAnswerScore | null>(null);
+
+// Helper function for rounding to two decimal places
+const roundToTwo = (value: number): number => Math.round(value * 100) / 100;
 
 // Computed
 const currentQuestion = computed(() => questions.value[currentQuestionIndex.value]);
@@ -121,8 +125,8 @@ const quizResult = computed<QuizResultType>(() => ({
     correctAnswers: score.value,
     score: score.value,
     percentage: Math.round((score.value / totalQuestions.value) * 100),
-    timeBonus: Math.round(totalTimeBonus.value * 100) / 100,
-    totalScore: Math.round(totalScore.value * 100) / 100,
+    timeBonus: roundToTwo(totalTimeBonus.value),
+    totalScore: roundToTwo(totalScore.value),
 }));
 
 // Timer functions
@@ -134,13 +138,19 @@ const startTimer = () => {
     const questionTime = calculateCountdownTime(currentQuestion.value.question);
     totalTimeForQuestion.value = questionTime;
     remainingTime.value = questionTime;
+    timerStartTime.value = Date.now();
     
     timerInterval.value = setInterval(() => {
-        if (remainingTime.value > 0 && !isAnswered.value) {
-            remainingTime.value = Math.max(0, remainingTime.value - 0.1);
-        } else if (remainingTime.value <= 0 && !isAnswered.value) {
-            // Time's up - auto-fail the question
-            handleTimeUp();
+        if (!isAnswered.value) {
+            // Use actual elapsed time for accuracy
+            const elapsed = (Date.now() - timerStartTime.value) / 1000;
+            const remaining = totalTimeForQuestion.value - elapsed;
+            remainingTime.value = Math.max(0, remaining);
+            
+            if (remainingTime.value <= 0) {
+                // Time's up - auto-fail the question
+                handleTimeUp();
+            }
         }
     }, 100);
 };

@@ -6,6 +6,12 @@
 import type { QuizTimeSettings, QuizAnswerScore } from "../types/quiz";
 
 /**
+ * Constants
+ */
+const SECONDS_PER_MINUTE = 60;
+const DECIMAL_PRECISION = 100; // For rounding to 2 decimal places
+
+/**
  * Default time settings for the quiz
  */
 export const DEFAULT_TIME_SETTINGS: QuizTimeSettings = {
@@ -14,6 +20,13 @@ export const DEFAULT_TIME_SETTINGS: QuizTimeSettings = {
   maxTimePerQuestion: 60,       // Maximum 60 seconds per question
   minTimePerQuestion: 10,       // Minimum 10 seconds per question
 };
+
+/**
+ * Round a number to two decimal places
+ */
+function roundToTwoDecimals(value: number): number {
+  return Math.round(value * DECIMAL_PRECISION) / DECIMAL_PRECISION;
+}
 
 /**
  * Calculate countdown time for a question based on its length
@@ -72,7 +85,7 @@ export function calculateAnswerScore(
   // Time bonus: 0 to 1 point based on speed
   // Fast answer (>50% time remaining): higher bonus
   // Slow answer (<50% time remaining): lower bonus
-  const timeBonus = Math.round(timePercentage * 100) / 100;
+  const timeBonus = roundToTwoDecimals(timePercentage);
 
   return {
     baseScore,
@@ -89,9 +102,9 @@ export function calculateAnswerScore(
 export function formatTime(seconds: number): string {
   if (seconds < 0) seconds = 0;
   
-  if (seconds >= 60) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+  if (seconds >= SECONDS_PER_MINUTE) {
+    const mins = Math.floor(seconds / SECONDS_PER_MINUTE);
+    const secs = Math.floor(seconds % SECONDS_PER_MINUTE);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   }
   
