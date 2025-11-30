@@ -81,7 +81,7 @@ const route = useRoute();
 const { setHeader, resetHeader } = useHeader();
 
 // Constants
-const QUIZ_QUESTION_COUNT = 10;
+const QUIZ_QUESTION_COUNT = 20;
 
 // Get categoryId from route params
 const categoryId = computed(() => route.params.categoryId as string);
