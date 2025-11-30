@@ -127,6 +127,7 @@ const quizResult = computed<QuizResultType>(() => ({
     percentage: Math.round((score.value / totalQuestions.value) * 100),
     timeBonus: roundToTwo(totalTimeBonus.value),
     totalScore: roundToTwo(totalScore.value),
+    maxScore: totalQuestions.value * 2, // 1 base point + 1 time bonus point per question
 }));
 
 // Timer functions
