@@ -20,7 +20,12 @@
             <!-- Total Score -->
             <div class="total-score-container">
                 <div class="total-score-value">{{ result.correctAnswers }} / {{ result.totalQuestions }}</div>
-                <div class="total-score-label">คะแนนรวม</div>
+                <div class="total-score-label">คะแนนพื้นฐาน</div>
+                <div v-if="result.timeBonus > 0" class="bonus-score-display">
+                    <span class="bonus-score-icon">⚡</span>
+                    <span class="bonus-score-value">+{{ result.timeBonus.toFixed(2) }}</span>
+                    <span class="bonus-score-label">โบนัสความเร็ว</span>
+                </div>
             </div>
             
             <!-- High Score Display -->
@@ -31,6 +36,10 @@
                 </div>
                 <div class="high-score-details">
                     <div class="high-score-value">{{ highScore.score }} / {{ highScore.totalQuestions }} ({{ highScore.percentage }}%)</div>
+                    <div v-if="highScoreBonus > 0" class="high-score-bonus">
+                        <span class="bonus-score-icon">⚡</span>
+                        <span>+{{ highScoreBonus.toFixed(2) }} โบนัส</span>
+                    </div>
                     <div class="high-score-date">{{ formattedHighScoreDate }}</div>
                 </div>
             </div>
@@ -111,6 +120,16 @@ const scoreClass = computed(() => {
 const formattedHighScoreDate = computed(() => {
     if (!highScore.value) return "";
     return formatThaiDate(highScore.value.achievedAt);
+});
+
+const highScoreBonus = computed(() => {
+    if (!highScore.value) return 0;
+    // Time bonus = totalScore - base score (number of correct answers)
+    // In the scoring system: baseScore = 1 per correct answer, timeBonus = 0-1 per answer
+    // totalScore = sum of (baseScore + timeBonus) for all answers
+    // Since score = number of correct answers = sum of baseScores
+    // timeBonus = totalScore - score
+    return Math.max(0, highScore.value.totalScore - highScore.value.score);
 });
 
 const handlePlayAgain = () => {
@@ -263,6 +282,31 @@ onMounted(async () => {
     font-weight: 600;
 }
 
+.bonus-score-display {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 1rem;
+}
+
+.bonus-score-icon {
+    font-size: 0.875rem;
+}
+
+.bonus-score-value {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+.bonus-score-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
 .high-score-container {
     display: flex;
     flex-direction: column;
@@ -301,6 +345,15 @@ onMounted(async () => {
     font-size: 1.25rem;
     font-weight: 700;
     color: #5b21b6;
+}
+
+.high-score-bonus {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #059669;
+    margin-top: 0.25rem;
 }
 
 .high-score-date {
