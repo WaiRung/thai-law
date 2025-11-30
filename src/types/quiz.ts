@@ -37,6 +37,7 @@ export interface QuizResult {
   percentage: number;
   timeBonus: number;        // Total time bonus earned
   totalScore: number;       // Total score including time bonus
+  maxScore: number;         // Maximum possible score (base + time bonus for all questions)
 }
 
 /**

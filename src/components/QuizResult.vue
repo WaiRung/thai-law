@@ -13,7 +13,7 @@
 
             <!-- Total Score with Time Bonus -->
             <div class="total-score-container">
-                <div class="total-score-value">{{ result.totalScore.toFixed(1) }}</div>
+                <div class="total-score-value">{{ result.totalScore.toFixed(1) }} / {{ result.maxScore }}</div>
                 <div class="total-score-label">คะแนนรวม</div>
                 <div v-if="result.timeBonus > 0" class="time-bonus-badge">
                     <span class="bonus-icon">⚡</span>
