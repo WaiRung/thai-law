@@ -17,16 +17,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import CategorySelection from "../components/CategorySelection.vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { categoryStores } from "../data/categoryStores";
 import { filterQuestions } from "../services/filterService";
 import { useDataManager } from "../composables/useDataManager";
+import { useHeader } from "../composables/useHeader";
 import type { CategoryStore } from "../types/flashcard";
 
 const router = useRouter();
+const { setHeader, resetHeader } = useHeader();
 
 // Category Management
 const categories = ref<CategoryStore[]>([]);
@@ -96,6 +98,9 @@ const selectCategory = (categoryId: string) => {
 
 // Initialize categories on mount
 onMounted(async () => {
+    // Set header to indicate QuizLaw mode
+    setHeader("QuizLaw", "เลือกหมวดหมู่");
+
     // Load categories
     await loadCategoriesData();
     
@@ -104,6 +109,11 @@ onMounted(async () => {
         const filtered = await filterQuestions(store.id, store.questions);
         filteredCounts.value[store.id] = filtered.length;
     }));
+});
+
+// Reset header on unmount
+onUnmounted(() => {
+    resetHeader();
 });
 </script>
 

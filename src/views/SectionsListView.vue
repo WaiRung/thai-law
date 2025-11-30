@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import DescriptionModal from "../components/DescriptionModal.vue";
 import { getAllSections } from "../services/sectionService";
@@ -80,6 +80,7 @@ import {
     isCacheValid,
     getDescriptionsCache,
 } from "../services/cache";
+import { useHeader } from "../composables/useHeader";
 import type { CategoryStore } from "../types/flashcard";
 import type { DescriptionContent, DescriptionCache } from "../types/description";
 
@@ -102,6 +103,7 @@ const props = defineProps<{
     categoryId: string;
 }>();
 
+const { setHeader, resetHeader } = useHeader();
 const isLoading = ref(true);
 const categorySections = ref<CategorySections[]>([]);
 const categories = ref<CategoryStore[]>([]);
@@ -202,6 +204,12 @@ const loadSections = async () => {
         categorySections.value = allSections.filter(
             cat => cat.categoryId === props.categoryId
         );
+        
+        // Set header to show the current category name
+        if (categorySections.value.length > 0) {
+            const categoryName = categorySections.value[0].categoryName;
+            setHeader(categoryName, "รายการมาตรา");
+        }
     } catch (error) {
         console.error("Failed to load sections:", error);
     } finally {
@@ -211,6 +219,11 @@ const loadSections = async () => {
 
 onMounted(() => {
     loadSections();
+});
+
+// Reset header on unmount
+onUnmounted(() => {
+    resetHeader();
 });
 </script>
 

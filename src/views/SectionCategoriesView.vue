@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { getAllSections } from "../services/sectionService";
@@ -58,6 +58,7 @@ import {
     getCategoriesCache,
     isCacheValid,
 } from "../services/cache";
+import { useHeader } from "../composables/useHeader";
 import type { CategoryStore } from "../types/flashcard";
 
 interface CategoryWithSectionCount {
@@ -67,6 +68,7 @@ interface CategoryWithSectionCount {
 }
 
 const router = useRouter();
+const { setHeader, resetHeader } = useHeader();
 const isLoading = ref(true);
 const categoriesWithSections = ref<CategoryWithSectionCount[]>([]);
 const categories = ref<CategoryStore[]>([]);
@@ -120,7 +122,15 @@ const selectCategory = (categoryId: string) => {
 };
 
 onMounted(() => {
+    // Set header to indicate Sections mode
+    setHeader("รายการมาตรา", "Sections List");
+    
     loadCategoriesWithSections();
+});
+
+// Reset header on unmount
+onUnmounted(() => {
+    resetHeader();
 });
 </script>
 
