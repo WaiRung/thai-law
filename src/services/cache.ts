@@ -7,7 +7,8 @@ import type { DescriptionCache } from "../types/description";
 const DB_NAME = "thai-law-db";
 const STORE_NAME = "categories-cache";
 const DESCRIPTIONS_STORE_NAME = "descriptions";
-const DB_VERSION = 2;
+const HIGH_SCORES_STORE_NAME = "high-scores";
+const DB_VERSION = 3;
 const CACHE_VERSION = "1.0";
 
 /**
@@ -64,6 +65,12 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(DESCRIPTIONS_STORE_NAME)) {
         db.createObjectStore(DESCRIPTIONS_STORE_NAME, { keyPath: "id" });
         console.log("Created IndexedDB object store:", DESCRIPTIONS_STORE_NAME);
+      }
+      
+      // Create high scores object store if it doesn't exist
+      if (!db.objectStoreNames.contains(HIGH_SCORES_STORE_NAME)) {
+        db.createObjectStore(HIGH_SCORES_STORE_NAME, { keyPath: "categoryId" });
+        console.log("Created IndexedDB object store:", HIGH_SCORES_STORE_NAME);
       }
     };
   });
