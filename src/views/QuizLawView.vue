@@ -7,10 +7,20 @@
             <!-- Progress Bar with Timer -->
             <div class="quiz-progress">
                 <div class="progress-header">
-                    <div class="timer-display" :class="{ 'timer-warning': remainingTime <= 5, 'timer-danger': remainingTime <= 3 }">
-                        <span class="timer-icon">⏱️</span>
+                    <div class="timer-display" :class="{ 'timer-warning': remainingTime <= 5, 'timer-danger': remainingTime <= 3, 'timer-paused': isPaused }">
+                        <span class="timer-icon">{{ isPaused ? '⏸️' : '⏱️' }}</span>
                         <span class="timer-value">{{ formattedTime }}</span>
                     </div>
+                    <button 
+                        v-if="!isAnswered" 
+                        class="pause-button" 
+                        :class="{ 'paused': isPaused }"
+                        @click="togglePause"
+                        :aria-label="isPaused ? 'ดำเนินการต่อ' : 'หยุดชั่วคราว'"
+                    >
+                        <span class="pause-icon">{{ isPaused ? '▶️' : '⏸️' }}</span>
+                        <span class="pause-text">{{ isPaused ? 'ต่อ' : 'พัก' }}</span>
+                    </button>
                     <div class="score-display">
                         <span class="score-label">คะแนน:</span>
                         <span class="score-value">{{ score }}/{{ totalQuestions }}</span>
@@ -22,31 +32,46 @@
                 <div class="timer-bar">
                     <div 
                         class="timer-fill" 
-                        :class="{ 'timer-warning': remainingTime <= 5, 'timer-danger': remainingTime <= 3 }"
+                        :class="{ 'timer-warning': remainingTime <= 5, 'timer-danger': remainingTime <= 3, 'timer-paused': isPaused }"
                         :style="{ width: timerPercentage + '%' }"
                     ></div>
                 </div>
             </div>
 
-            <!-- Quiz Question -->
-            <QuizQuestion
-                :question="currentQuestion"
-                :question-number="currentQuestionIndex + 1"
-                :total-questions="totalQuestions"
-                :selected-answer="selectedAnswer"
-                :is-answered="isAnswered"
-                :is-correct="isCorrect"
-                :last-answer-score="lastAnswerScore"
-                @select="handleSelectAnswer"
-            />
-
-            <!-- Next Button -->
-            <div v-if="isAnswered" class="next-button-container">
-                <button class="next-button" @click="handleNext">
-                    {{ isLastQuestion ? 'ดูผลลัพธ์' : 'ข้อถัดไป' }}
-                    <span class="next-arrow">→</span>
-                </button>
+            <!-- Pause Overlay -->
+            <div v-if="isPaused" class="pause-overlay">
+                <div class="pause-modal">
+                    <div class="pause-icon-large">⏸️</div>
+                    <h2 class="pause-title">หยุดพักชั่วคราว</h2>
+                    <p class="pause-subtitle">คลิกปุ่มด้านล่างเพื่อเล่นต่อ</p>
+                    <button class="resume-button" @click="togglePause">
+                        <span class="resume-icon">▶️</span>
+                        เล่นต่อ
+                    </button>
+                </div>
             </div>
+
+            <!-- Quiz Question (hidden when paused) -->
+            <template v-if="!isPaused">
+                <QuizQuestion
+                    :question="currentQuestion"
+                    :question-number="currentQuestionIndex + 1"
+                    :total-questions="totalQuestions"
+                    :selected-answer="selectedAnswer"
+                    :is-answered="isAnswered"
+                    :is-correct="isCorrect"
+                    :last-answer-score="lastAnswerScore"
+                    @select="handleSelectAnswer"
+                />
+
+                <!-- Next Button -->
+                <div v-if="isAnswered" class="next-button-container">
+                    <button class="next-button" @click="handleNext">
+                        {{ isLastQuestion ? 'ดูผลลัพธ์' : 'ข้อถัดไป' }}
+                        <span class="next-arrow">→</span>
+                    </button>
+                </div>
+            </template>
         </template>
 
         <!-- Quiz Result -->
@@ -106,6 +131,10 @@ const totalScore = ref(0);
 const totalTimeBonus = ref(0);
 const lastAnswerScore = ref<QuizAnswerScore | null>(null);
 
+// Pause state
+const isPaused = ref(false);
+const pauseStartTimestamp = ref(0);
+
 // Helper function for rounding to two decimal places
 const roundToTwo = (value: number): number => Math.round(value * 100) / 100;
 
@@ -143,7 +172,7 @@ const startTimer = () => {
     timerStartTime.value = Date.now();
     
     timerInterval.value = setInterval(() => {
-        if (!isAnswered.value) {
+        if (!isAnswered.value && !isPaused.value) {
             // Use actual elapsed time for accuracy
             const elapsed = (Date.now() - timerStartTime.value) / 1000;
             const remaining = totalTimeForQuestion.value - elapsed;
@@ -161,6 +190,22 @@ const stopTimer = () => {
     if (timerInterval.value) {
         clearInterval(timerInterval.value);
         timerInterval.value = null;
+    }
+};
+
+// Pause/Resume functions
+const togglePause = () => {
+    if (isAnswered.value) return;
+    
+    if (isPaused.value) {
+        // Resume: adjust timerStartTime to account for pause duration
+        const pauseDuration = (Date.now() - pauseStartTimestamp.value) / 1000;
+        timerStartTime.value = timerStartTime.value + (pauseDuration * 1000);
+        isPaused.value = false;
+    } else {
+        // Pause: save timestamp when pause started
+        pauseStartTimestamp.value = Date.now();
+        isPaused.value = true;
     }
 };
 
@@ -240,6 +285,7 @@ const initializeQuiz = async () => {
     isCorrect.value = null;
     showResult.value = false;
     lastAnswerScore.value = null;
+    isPaused.value = false;
     
     isLoading.value = false;
     
@@ -424,6 +470,133 @@ onUnmounted(() => {
     background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
 }
 
+.timer-display.timer-paused {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.timer-fill.timer-paused {
+    background: linear-gradient(90deg, #818cf8 0%, #6366f1 100%);
+}
+
+.pause-button {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pause-button:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+}
+
+.pause-button.paused {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+}
+
+.pause-button.paused:hover {
+    background: #bbf7d0;
+}
+
+.pause-icon {
+    font-size: 0.875rem;
+}
+
+.pause-text {
+    font-size: 0.75rem;
+}
+
+.pause-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+}
+
+.pause-modal {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    text-align: center;
+    max-width: 320px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.2s ease-out;
+}
+
+@keyframes scaleIn {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.pause-icon-large {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.pause-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.pause-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0 0 1.5rem 0;
+}
+
+.resume-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.resume-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.resume-icon {
+    font-size: 1.25rem;
+}
+
 .next-button-container {
     display: flex;
     justify-content: center;
@@ -469,6 +642,26 @@ onUnmounted(() => {
         padding: 0.875rem 1.5rem;
         width: 100%;
         justify-content: center;
+    }
+
+    .pause-button {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .pause-text {
+        display: none;
+    }
+
+    .pause-modal {
+        padding: 1.5rem;
+    }
+
+    .pause-icon-large {
+        font-size: 3rem;
+    }
+
+    .pause-title {
+        font-size: 1.25rem;
     }
 }
 </style>
