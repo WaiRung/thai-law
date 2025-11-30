@@ -5,6 +5,8 @@ import CategoryView from '../views/CategoryView.vue'
 import FlashcardView from '../views/FlashcardView.vue'
 import SectionCategoriesView from '../views/SectionCategoriesView.vue'
 import SectionsListView from '../views/SectionsListView.vue'
+import QuizLawCategoryView from '../views/QuizLawCategoryView.vue'
+import QuizLawView from '../views/QuizLawView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -32,6 +34,17 @@ const routes: RouteRecordRaw[] = [
     path: '/sections/:categoryId',
     name: 'sections-detail',
     component: SectionsListView,
+    props: true,
+  },
+  {
+    path: '/quizlaw',
+    name: 'quizlaw-categories',
+    component: QuizLawCategoryView,
+  },
+  {
+    path: '/quizlaw/:categoryId',
+    name: 'quizlaw',
+    component: QuizLawView,
     props: true,
   },
 ]

@@ -1,0 +1,296 @@
+/**
+ * Quiz Service
+ * Generates quiz questions from flashcard data
+ * 
+ * Quiz rules:
+ * 1. Questions are content without "มาตรา", "วรรค", "อนุ"
+ * 2. Answers are 4 choices:
+ *    - Whole section: "มาตรา {4 nearest section numbers}"
+ *    - Paragraph: "มาตรา X วรรค {other paragraph numbers}"
+ *    - Subsection: "มาตรา X อนุ {1 correct + 3 random nearest numbers}"
+ */
+
+import type { Flashcard } from "../types/flashcard";
+import type { QuizQuestion } from "../types/quiz";
+
+/**
+ * Parse section ID to extract section number, paragraph number, and subsection number
+ * Examples:
+ * - "มาตรา 123" -> { section: 123 }
+ * - "มาตรา 123 วรรค 2" -> { section: 123, paragraph: 2 }
+ * - "มาตรา 123 อนุ 3" -> { section: 123, subsection: 3 }
+ * - "มาตรา 123 วรรค 2 อนุ 3" -> { section: 123, paragraph: 2, subsection: 3 }
+ */
+interface ParsedId {
+  section: number;
+  paragraph?: number;
+  subsection?: number;
+}
+
+function parseFlashcardId(id: string): ParsedId | null {
+  // Match patterns like "มาตรา 123", "มาตรา 123 วรรค 2", etc.
+  const sectionMatch = id.match(/มาตรา\s+(\d+)/);
+  if (!sectionMatch) return null;
+
+  const section = parseInt(sectionMatch[1], 10);
+  const result: ParsedId = { section };
+
+  // Check for paragraph
+  const paragraphMatch = id.match(/วรรค\s+(\d+)/);
+  if (paragraphMatch) {
+    result.paragraph = parseInt(paragraphMatch[1], 10);
+  }
+
+  // Check for subsection
+  const subsectionMatch = id.match(/อนุ\s+(\d+)/);
+  if (subsectionMatch) {
+    result.subsection = parseInt(subsectionMatch[1], 10);
+  }
+
+  return result;
+}
+
+/**
+ * Extract question content from flashcard answer
+ * Removes the header (มาตรา X, etc.) and returns only the content
+ */
+function extractQuestionContent(flashcard: Flashcard): string {
+  // The answer format is:
+  // First line: "มาตรา X" or "มาตรา X วรรค Y" etc.
+  // Following lines: The actual content
+  const lines = flashcard.answer.split("\n");
+  
+  // Skip first line (section/paragraph header) and empty lines
+  const contentLines = lines.slice(1).filter(line => line.trim() !== "");
+  
+  // Join content lines and trim
+  let content = contentLines.join("\n").trim();
+  
+  // Remove leading paragraph markers like "วรรค X" or subsection markers
+  content = content.replace(/^\s*วรรค\s+\d+\s*/, "").trim();
+  
+  return content;
+}
+
+/**
+ * Get the 4 nearest section numbers to the target section
+ */
+function getNearestSectionChoices(
+  targetSection: number,
+  allSections: number[],
+  count: number = 4
+): number[] {
+  // Sort sections by distance from target
+  const sortedByDistance = [...allSections]
+    .filter(s => s !== targetSection) // Exclude target
+    .sort((a, b) => Math.abs(a - targetSection) - Math.abs(b - targetSection));
+  
+  // Take nearest (count - 1) sections and add target
+  const nearestSections = sortedByDistance.slice(0, count - 1);
+  nearestSections.push(targetSection);
+  
+  // Shuffle the choices
+  return shuffleArray(nearestSections);
+}
+
+/**
+ * Get paragraph choices for a section
+ */
+function getParagraphChoices(
+  targetParagraph: number,
+  targetSection: number,
+  allParagraphs: number[],
+  allSections: number[]
+): string[] {
+  const choices: string[] = [];
+  
+  // Add the correct answer
+  choices.push(`มาตรา ${targetSection} วรรค ${targetParagraph}`);
+  
+  // Get other paragraphs from the same section
+  const otherParagraphs = allParagraphs.filter(p => p !== targetParagraph);
+  
+  // Add other paragraph choices
+  for (const p of otherParagraphs.slice(0, 3)) {
+    choices.push(`มาตรา ${targetSection} วรรค ${p}`);
+  }
+  
+  // If we don't have enough paragraph choices, add section choices
+  if (choices.length < 4) {
+    const nearestSections = allSections
+      .filter(s => s !== targetSection)
+      .sort((a, b) => Math.abs(a - targetSection) - Math.abs(b - targetSection));
+    
+    for (const s of nearestSections) {
+      if (choices.length >= 4) break;
+      choices.push(`มาตรา ${s}`);
+    }
+  }
+  
+  return shuffleArray(choices);
+}
+
+/**
+ * Get subsection choices
+ */
+function getSubsectionChoices(
+  targetSubsection: number,
+  targetSection: number,
+  targetParagraph: number | undefined,
+  allSubsections: number[]
+): string[] {
+  const choices: string[] = [];
+  
+  // Build the correct answer format
+  const correctAnswer = targetParagraph !== undefined
+    ? `มาตรา ${targetSection} วรรค ${targetParagraph} อนุ ${targetSubsection}`
+    : `มาตรา ${targetSection} อนุ ${targetSubsection}`;
+  
+  choices.push(correctAnswer);
+  
+  // Get other subsection numbers (nearest to target)
+  const otherSubsections = allSubsections
+    .filter(s => s !== targetSubsection)
+    .sort((a, b) => Math.abs(a - targetSubsection) - Math.abs(b - targetSubsection));
+  
+  // If we don't have enough subsections, generate some random ones nearby
+  const neededCount = 3;
+  const availableSubsections = [...otherSubsections];
+  
+  // Add random nearby numbers if not enough (with safety counter to prevent infinite loop)
+  let attempts = 0;
+  const maxAttempts = 50;
+  while (availableSubsections.length < neededCount && attempts < maxAttempts) {
+    attempts++;
+    const randomOffset = Math.floor(Math.random() * 10) + 1;
+    const randomNum = targetSubsection + (Math.random() > 0.5 ? randomOffset : -randomOffset);
+    if (randomNum > 0 && !availableSubsections.includes(randomNum) && randomNum !== targetSubsection) {
+      availableSubsections.push(randomNum);
+    }
+  }
+  
+  // Add wrong choices
+  for (let i = 0; i < neededCount && i < availableSubsections.length; i++) {
+    const wrongSubsection = availableSubsections[i];
+    const wrongAnswer = targetParagraph !== undefined
+      ? `มาตรา ${targetSection} วรรค ${targetParagraph} อนุ ${wrongSubsection}`
+      : `มาตรา ${targetSection} อนุ ${wrongSubsection}`;
+    choices.push(wrongAnswer);
+  }
+  
+  return shuffleArray(choices);
+}
+
+/**
+ * Shuffle an array using Fisher-Yates algorithm
+ */
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * Generate quiz questions from flashcards
+ * @param flashcards - Array of flashcards to generate questions from
+ * @param count - Number of questions to generate (default: 10)
+ * @returns Array of quiz questions
+ */
+export function generateQuizQuestions(
+  flashcards: Flashcard[],
+  count: number = 10
+): QuizQuestion[] {
+  // Parse all flashcard IDs to understand the structure
+  const parsedCards: { card: Flashcard; parsed: ParsedId }[] = [];
+  
+  for (const card of flashcards) {
+    const parsed = parseFlashcardId(card.id);
+    if (parsed) {
+      parsedCards.push({ card, parsed });
+    }
+  }
+  
+  if (parsedCards.length === 0) {
+    return [];
+  }
+  
+  // Extract unique sections, paragraphs, and subsections for choice generation
+  const allSections = [...new Set(parsedCards.map(p => p.parsed.section))].sort((a, b) => a - b);
+  
+  // Shuffle and take the requested count
+  const shuffledCards = shuffleArray(parsedCards).slice(0, count);
+  
+  const questions: QuizQuestion[] = [];
+  
+  for (const { card, parsed } of shuffledCards) {
+    // Determine question type
+    let type: 'section' | 'paragraph' | 'subsection';
+    let correctAnswer: string;
+    let choices: string[];
+    
+    if (parsed.subsection !== undefined) {
+      // Subsection question
+      type = 'subsection';
+      correctAnswer = parsed.paragraph !== undefined
+        ? `มาตรา ${parsed.section} วรรค ${parsed.paragraph} อนุ ${parsed.subsection}`
+        : `มาตรา ${parsed.section} อนุ ${parsed.subsection}`;
+      
+      // Get all subsections for this section (or section+paragraph)
+      const relevantCards = parsedCards.filter(p => 
+        p.parsed.section === parsed.section && 
+        p.parsed.paragraph === parsed.paragraph &&
+        p.parsed.subsection !== undefined
+      );
+      const allSubsections = [...new Set(relevantCards.map(p => p.parsed.subsection!))];
+      
+      choices = getSubsectionChoices(
+        parsed.subsection,
+        parsed.section,
+        parsed.paragraph,
+        allSubsections
+      );
+    } else if (parsed.paragraph !== undefined) {
+      // Paragraph question
+      type = 'paragraph';
+      correctAnswer = `มาตรา ${parsed.section} วรรค ${parsed.paragraph}`;
+      
+      // Get all paragraphs for this section
+      const relevantCards = parsedCards.filter(p => 
+        p.parsed.section === parsed.section &&
+        p.parsed.paragraph !== undefined &&
+        p.parsed.subsection === undefined
+      );
+      const allParagraphs = [...new Set(relevantCards.map(p => p.parsed.paragraph!))].sort((a, b) => a - b);
+      
+      choices = getParagraphChoices(
+        parsed.paragraph,
+        parsed.section,
+        allParagraphs,
+        allSections
+      );
+    } else {
+      // Whole section question
+      type = 'section';
+      correctAnswer = `มาตรา ${parsed.section}`;
+      
+      const sectionChoices = getNearestSectionChoices(parsed.section, allSections);
+      choices = sectionChoices.map(s => `มาตรา ${s}`);
+    }
+    
+    // Extract question content
+    const questionContent = extractQuestionContent(card);
+    
+    questions.push({
+      id: card.id,
+      question: questionContent,
+      correctAnswer,
+      choices,
+      type,
+    });
+  }
+  
+  return questions;
+}
