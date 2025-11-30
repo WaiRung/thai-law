@@ -13,7 +13,7 @@
                     </div>
                     <div class="score-display">
                         <span class="score-label">คะแนน:</span>
-                        <span class="score-value">{{ totalScore.toFixed(1) }}</span>
+                        <span class="score-value">{{ score }}/{{ totalQuestions }}</span>
                     </div>
                 </div>
                 <div class="progress-bar">
