@@ -234,7 +234,7 @@ function weightedRandomSelect<T>(
     
     // Find the item that corresponds to this random value
     let cumulative = 0;
-    let selectedIndex = 0;
+    let selectedIndex = remaining.length - 1; // Default to last item for edge cases
     for (let i = 0; i < remaining.length; i++) {
       cumulative += remaining[i].weight;
       if (random < cumulative) {
