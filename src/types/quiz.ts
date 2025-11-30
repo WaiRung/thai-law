@@ -67,5 +67,6 @@ export interface HighScore {
   score: number;               // Number of correct answers
   percentage: number;          // Percentage score
   totalQuestions: number;      // Total questions in the quiz
+  totalScore: number;          // Total score including time bonus
   achievedAt: number;          // Timestamp when the high score was achieved
 }
