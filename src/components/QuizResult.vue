@@ -125,6 +125,10 @@ const formattedHighScoreDate = computed(() => {
 const highScoreBonus = computed(() => {
     if (!highScore.value) return 0;
     // Time bonus = totalScore - base score (number of correct answers)
+    // In the scoring system: baseScore = 1 per correct answer, timeBonus = 0-1 per answer
+    // totalScore = sum of (baseScore + timeBonus) for all answers
+    // Since score = number of correct answers = sum of baseScores
+    // timeBonus = totalScore - score
     return Math.max(0, highScore.value.totalScore - highScore.value.score);
 });
 
