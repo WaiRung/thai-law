@@ -1,14 +1,7 @@
 import type { CategoryStore, CacheMetadata } from "../types/flashcard";
 import type { DescriptionCache } from "../types/description";
+import { openDatabase, formatThaiDate, STORE_NAMES } from "./database";
 
-/**
- * IndexedDB Database Configuration
- */
-const DB_NAME = "thai-law-db";
-const STORE_NAME = "categories-cache";
-const DESCRIPTIONS_STORE_NAME = "descriptions";
-const HIGH_SCORES_STORE_NAME = "high-scores";
-const DB_VERSION = 3;
 const CACHE_VERSION = "1.0";
 
 /**
@@ -20,74 +13,6 @@ interface CacheEntry {
   timestamp: number;
   version: string;
   count: number;
-}
-
-/**
- * Thai month abbreviations for date formatting
- */
-const THAI_MONTHS = [
-  "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-  "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
-];
-
-/**
- * Open IndexedDB database
- * @returns Promise with IDBDatabase
- */
-function openDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (!window.indexedDB) {
-      reject(new Error("IndexedDB is not supported in this browser"));
-      return;
-    }
-
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onerror = () => {
-      console.error("Failed to open IndexedDB:", request.error);
-      reject(new Error("Failed to open database"));
-    };
-
-    request.onsuccess = () => {
-      resolve(request.result);
-    };
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      
-      // Create object store if it doesn't exist
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: "id" });
-        console.log("Created IndexedDB object store:", STORE_NAME);
-      }
-      
-      // Create descriptions object store if it doesn't exist
-      if (!db.objectStoreNames.contains(DESCRIPTIONS_STORE_NAME)) {
-        db.createObjectStore(DESCRIPTIONS_STORE_NAME, { keyPath: "id" });
-        console.log("Created IndexedDB object store:", DESCRIPTIONS_STORE_NAME);
-      }
-      
-      // Create high scores object store if it doesn't exist
-      if (!db.objectStoreNames.contains(HIGH_SCORES_STORE_NAME)) {
-        db.createObjectStore(HIGH_SCORES_STORE_NAME, { keyPath: "categoryId" });
-        console.log("Created IndexedDB object store:", HIGH_SCORES_STORE_NAME);
-      }
-    };
-  });
-}
-
-/**
- * Format date in Thai Buddhist calendar format
- * @param timestamp - Unix timestamp
- * @returns Formatted date string (e.g., "31 ต.ค. 2568")
- */
-function formatThaiDate(timestamp: number): string {
-  const date = new Date(timestamp);
-  const thaiYear = date.getFullYear() + 543;
-  const day = date.getDate();
-  const month = THAI_MONTHS[date.getMonth()];
-  
-  return `${day} ${month} ${thaiYear}`;
 }
 
 /**
@@ -107,8 +32,8 @@ export async function saveCategoriesCache(categories: CategoryStore[]): Promise<
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([STORE_NAME], "readwrite");
-    const store = transaction.objectStore(STORE_NAME);
+    const transaction = db.transaction([STORE_NAMES.CATEGORIES], "readwrite");
+    const store = transaction.objectStore(STORE_NAMES.CATEGORIES);
     
     const cacheEntry: CacheEntry = {
       id: "categories",
@@ -152,8 +77,8 @@ export async function getCategoriesCache(): Promise<CategoryStore[] | null> {
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([STORE_NAME], "readonly");
-    const store = transaction.objectStore(STORE_NAME);
+    const transaction = db.transaction([STORE_NAMES.CATEGORIES], "readonly");
+    const store = transaction.objectStore(STORE_NAMES.CATEGORIES);
     const request = store.get("categories");
     
     return new Promise((resolve, reject) => {
@@ -198,8 +123,8 @@ export async function getCacheMetadata(): Promise<CacheMetadata | null> {
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([STORE_NAME], "readonly");
-    const store = transaction.objectStore(STORE_NAME);
+    const transaction = db.transaction([STORE_NAMES.CATEGORIES], "readonly");
+    const store = transaction.objectStore(STORE_NAMES.CATEGORIES);
     const request = store.get("categories");
     
     return new Promise((resolve, reject) => {
@@ -243,9 +168,9 @@ export async function clearCache(): Promise<void> {
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([STORE_NAME, DESCRIPTIONS_STORE_NAME], "readwrite");
-    const categoriesStore = transaction.objectStore(STORE_NAME);
-    const descriptionsStore = transaction.objectStore(DESCRIPTIONS_STORE_NAME);
+    const transaction = db.transaction([STORE_NAMES.CATEGORIES, STORE_NAMES.DESCRIPTIONS], "readwrite");
+    const categoriesStore = transaction.objectStore(STORE_NAMES.CATEGORIES);
+    const descriptionsStore = transaction.objectStore(STORE_NAMES.DESCRIPTIONS);
     
     categoriesStore.delete("categories");
     descriptionsStore.delete("descriptions");
@@ -319,8 +244,8 @@ export async function saveDescriptionsCache(descriptions: DescriptionCache): Pro
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([DESCRIPTIONS_STORE_NAME], "readwrite");
-    const store = transaction.objectStore(DESCRIPTIONS_STORE_NAME);
+    const transaction = db.transaction([STORE_NAMES.DESCRIPTIONS], "readwrite");
+    const store = transaction.objectStore(STORE_NAMES.DESCRIPTIONS);
     
     const cacheEntry: DescriptionsCacheEntry = {
       id: "descriptions",
@@ -362,8 +287,8 @@ export async function getDescriptionsCache(): Promise<DescriptionCache> {
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([DESCRIPTIONS_STORE_NAME], "readonly");
-    const store = transaction.objectStore(DESCRIPTIONS_STORE_NAME);
+    const transaction = db.transaction([STORE_NAMES.DESCRIPTIONS], "readonly");
+    const store = transaction.objectStore(STORE_NAMES.DESCRIPTIONS);
     const request = store.get("descriptions");
     
     return new Promise((resolve, reject) => {

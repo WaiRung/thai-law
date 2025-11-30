@@ -1,79 +1,8 @@
 import type { HighScore } from "../types/quiz";
+import { openDatabase, formatThaiDate, STORE_NAMES } from "./database";
 
-/**
- * IndexedDB Database Configuration for High Scores
- */
-const DB_NAME = "thai-law-db";
-const STORE_NAME = "categories-cache";
-const DESCRIPTIONS_STORE_NAME = "descriptions";
-const HIGH_SCORES_STORE_NAME = "high-scores";
-const DB_VERSION = 3;
-
-/**
- * Thai month abbreviations for date formatting
- */
-const THAI_MONTHS = [
-  "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-  "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
-];
-
-/**
- * Format date in Thai Buddhist calendar format
- * @param timestamp - Unix timestamp
- * @returns Formatted date string (e.g., "31 ต.ค. 2568")
- */
-export function formatThaiDate(timestamp: number): string {
-  const date = new Date(timestamp);
-  const thaiYear = date.getFullYear() + 543;
-  const day = date.getDate();
-  const month = THAI_MONTHS[date.getMonth()];
-  
-  return `${day} ${month} ${thaiYear}`;
-}
-
-/**
- * Open IndexedDB database with high scores store
- * @returns Promise with IDBDatabase
- */
-function openDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (!window.indexedDB) {
-      reject(new Error("IndexedDB is not supported in this browser"));
-      return;
-    }
-
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onerror = () => {
-      console.error("Failed to open IndexedDB:", request.error);
-      reject(new Error("Failed to open database"));
-    };
-
-    request.onsuccess = () => {
-      resolve(request.result);
-    };
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      
-      // Create all object stores if they don't exist
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: "id" });
-        console.log("Created IndexedDB object store:", STORE_NAME);
-      }
-      
-      if (!db.objectStoreNames.contains(DESCRIPTIONS_STORE_NAME)) {
-        db.createObjectStore(DESCRIPTIONS_STORE_NAME, { keyPath: "id" });
-        console.log("Created IndexedDB object store:", DESCRIPTIONS_STORE_NAME);
-      }
-      
-      if (!db.objectStoreNames.contains(HIGH_SCORES_STORE_NAME)) {
-        db.createObjectStore(HIGH_SCORES_STORE_NAME, { keyPath: "categoryId" });
-        console.log("Created IndexedDB object store:", HIGH_SCORES_STORE_NAME);
-      }
-    };
-  });
-}
+// Re-export formatThaiDate for convenience
+export { formatThaiDate };
 
 /**
  * Save a high score to IndexedDB
@@ -83,8 +12,8 @@ export async function saveHighScore(highScore: HighScore): Promise<void> {
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([HIGH_SCORES_STORE_NAME], "readwrite");
-    const store = transaction.objectStore(HIGH_SCORES_STORE_NAME);
+    const transaction = db.transaction([STORE_NAMES.HIGH_SCORES], "readwrite");
+    const store = transaction.objectStore(STORE_NAMES.HIGH_SCORES);
     
     const request = store.put(highScore);
     
@@ -122,8 +51,8 @@ export async function getHighScore(categoryId: string): Promise<HighScore | null
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([HIGH_SCORES_STORE_NAME], "readonly");
-    const store = transaction.objectStore(HIGH_SCORES_STORE_NAME);
+    const transaction = db.transaction([STORE_NAMES.HIGH_SCORES], "readonly");
+    const store = transaction.objectStore(STORE_NAMES.HIGH_SCORES);
     const request = store.get(categoryId);
     
     return new Promise((resolve, reject) => {
@@ -161,8 +90,8 @@ export async function getAllHighScores(): Promise<Map<string, HighScore>> {
   try {
     const db = await openDatabase();
     
-    const transaction = db.transaction([HIGH_SCORES_STORE_NAME], "readonly");
-    const store = transaction.objectStore(HIGH_SCORES_STORE_NAME);
+    const transaction = db.transaction([STORE_NAMES.HIGH_SCORES], "readonly");
+    const store = transaction.objectStore(STORE_NAMES.HIGH_SCORES);
     const request = store.getAll();
     
     return new Promise((resolve, reject) => {
