@@ -63,6 +63,30 @@
                         </svg>
                     </div>
                 </button>
+
+                <button @click="navigateToQuizLaw" class="menu-item">
+                    <div class="menu-item-icon">🎯</div>
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">QuizLaw</h3>
+                        <p class="menu-item-description">ทดสอบความรู้กฎหมายแบบเกม</p>
+                    </div>
+                    <div class="menu-item-arrow">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            class="arrow-icon"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 5l7 7-7 7"
+                            />
+                        </svg>
+                    </div>
+                </button>
             </div>
         </div>
     </main>
@@ -92,6 +116,10 @@ const navigateToFlashcards = () => {
 
 const navigateToSections = () => {
     router.push({ name: "sections-list" });
+};
+
+const navigateToQuizLaw = () => {
+    router.push({ name: "quizlaw-categories" });
 };
 
 const handleDownloadData = async () => {
