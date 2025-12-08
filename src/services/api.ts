@@ -370,6 +370,9 @@ export async function fetchCategoryById(
     throw new Error(`Unknown category ID: ${categoryId}`);
   }
 
+  // Find the original category configuration to preserve metadata
+  const originalCategory = categoriesConfig.categories.find(c => c.id === categoryId);
+
   // Fetch all API files and merge questions
   const allQuestions: any[] = [];
   
@@ -413,19 +416,25 @@ export async function fetchCategoryById(
     }
   }
 
-  // Use the first filename for generating the English name
+  // Use the first filename for generating the English name (fallback if metadata not found)
   const firstFilename = filenames[0];
   
   // Construct the full category object with merged questions
+  // Preserve metadata from original configuration if available
   const category = {
     id: categoryId,
-    nameTh: categoryId,
-    nameEn: firstFilename
+    nameTh: originalCategory?.nameTh || categoryId,
+    nameEn: originalCategory?.nameEn || firstFilename
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" "),
-    icon: "📚",
+    icon: originalCategory?.icon || "📚",
     questions: allQuestions,
+    // Preserve original metadata fields for proper routing and data source handling
+    ...(originalCategory?.apiFilename && { apiFilename: originalCategory.apiFilename }),
+    ...(originalCategory?.filterFilename && { filterFilename: originalCategory.filterFilename }),
+    ...(originalCategory?.descriptionApiPath && { descriptionApiPath: originalCategory.descriptionApiPath }),
+    ...(originalCategory?.dataSources && { dataSources: originalCategory.dataSources }),
   };
 
   validateCategory(category);
