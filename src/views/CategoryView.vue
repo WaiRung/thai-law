@@ -92,8 +92,16 @@ const loadCategoriesData = async () => {
 
 // Category Selection Method
 const selectCategory = (categoryId: string) => {
-    // Navigate to flashcard view using router
-    router.push({ name: "flashcards", params: { categoryId } });
+    // Check if category has multiple data sources
+    const category = categories.value.find(c => c.id === categoryId);
+    
+    if (category?.dataSources && category.dataSources.length > 1) {
+        // Navigate to data source selection view
+        router.push({ name: "flashcard-datasources", params: { categoryId } });
+    } else {
+        // Navigate to flashcard view using router
+        router.push({ name: "flashcards", params: { categoryId } });
+    }
 };
 
 // Initialize categories on mount

@@ -118,7 +118,15 @@ const loadCategoriesWithSections = async () => {
 };
 
 const selectCategory = (categoryId: string) => {
-    router.push({ name: "sections-detail", params: { categoryId } });
+    // Check if category has multiple data sources
+    const category = categories.value.find(c => c.id === categoryId);
+    
+    if (category?.dataSources && category.dataSources.length > 1) {
+        // Navigate to data source selection view
+        router.push({ name: "section-datasources", params: { categoryId } });
+    } else {
+        router.push({ name: "sections-detail", params: { categoryId } });
+    }
 };
 
 onMounted(() => {

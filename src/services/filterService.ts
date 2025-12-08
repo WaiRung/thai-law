@@ -180,3 +180,84 @@ export async function isQuestionAllowed(
 
   return allowedIds.has(questionId);
 }
+
+/**
+ * Load allowed question IDs for a specific data source within a category
+ * Returns a Set of allowed IDs, or null if no filter exists
+ */
+export async function loadDataSourceFilter(
+  categoryId: string,
+  dataSourceIndex: number,
+): Promise<Set<string> | null> {
+  const cacheKey = `${categoryId}-ds${dataSourceIndex}`;
+  
+  // Check if already cached
+  if (filterCache.has(cacheKey)) {
+    return filterCache.get(cacheKey)!;
+  }
+
+  // Find the category in config
+  const categoryConfig = categoriesConfig.categories.find(c => c.id === categoryId);
+  if (!categoryConfig) {
+    console.log(`Category not found: ${categoryId}`);
+    return null;
+  }
+
+  // Check if dataSources array exists and has the requested index
+  if (!categoryConfig.dataSources || !Array.isArray(categoryConfig.dataSources)) {
+    console.log(`No dataSources array for category: ${categoryId}`);
+    return null;
+  }
+
+  if (dataSourceIndex < 0 || dataSourceIndex >= categoryConfig.dataSources.length) {
+    console.warn(`Invalid dataSourceIndex ${dataSourceIndex} for category: ${categoryId}`);
+    return null;
+  }
+
+  const dataSource = categoryConfig.dataSources[dataSourceIndex];
+  if (!dataSource.filterFilename) {
+    console.log(`No filter filename for data source ${dataSourceIndex} in category: ${categoryId}`);
+    return null;
+  }
+
+  // Load the specific filter file
+  const filter = await loadFilterFile(dataSource.filterFilename);
+  if (!filter || !filter.allowedQuestionIds) {
+    console.log(`No valid filter loaded for data source ${dataSourceIndex} in category: ${categoryId}`);
+    return null;
+  }
+
+  // Create a Set for efficient lookup
+  const allowedIdsSet = new Set(filter.allowedQuestionIds);
+
+  // Cache the Set for future use
+  filterCache.set(cacheKey, allowedIdsSet);
+
+  console.log(`Loaded filter for ${categoryId} data source ${dataSourceIndex}: ${allowedIdsSet.size} allowed IDs`);
+  return allowedIdsSet;
+}
+
+/**
+ * Filter questions based on a specific data source
+ * If dataSourceIndex is undefined, uses all data sources (legacy behavior)
+ */
+export async function filterQuestionsByDataSource(
+  categoryId: string,
+  questions: Flashcard[],
+  dataSourceIndex?: number,
+): Promise<Flashcard[]> {
+  // If no dataSourceIndex specified, use the regular filter (all data sources)
+  if (dataSourceIndex === undefined) {
+    return filterQuestions(categoryId, questions);
+  }
+
+  const allowedIds = await loadDataSourceFilter(categoryId, dataSourceIndex);
+
+  // If no filter exists, return all questions
+  if (!allowedIds) {
+    return questions;
+  }
+
+  // Filter questions using the Set for O(1) lookup
+  return questions.filter((question) => allowedIds.has(question.id));
+}

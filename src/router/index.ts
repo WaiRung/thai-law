@@ -3,10 +3,13 @@ import type { RouteRecordRaw } from 'vue-router'
 import MainMenuView from '../views/MainMenuView.vue'
 import CategoryView from '../views/CategoryView.vue'
 import FlashcardView from '../views/FlashcardView.vue'
+import FlashcardDataSourceView from '../views/FlashcardDataSourceView.vue'
 import SectionCategoriesView from '../views/SectionCategoriesView.vue'
 import SectionsListView from '../views/SectionsListView.vue'
+import SectionDataSourceView from '../views/SectionDataSourceView.vue'
 import QuizLawCategoryView from '../views/QuizLawCategoryView.vue'
 import QuizLawView from '../views/QuizLawView.vue'
+import QuizLawDataSourceView from '../views/QuizLawDataSourceView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -20,7 +23,13 @@ const routes: RouteRecordRaw[] = [
     component: CategoryView,
   },
   {
-    path: '/flashcards/:categoryId',
+    path: '/flashcards/:categoryId/datasources',
+    name: 'flashcard-datasources',
+    component: FlashcardDataSourceView,
+    props: true,
+  },
+  {
+    path: '/flashcards/:categoryId/:dataSourceIndex?',
     name: 'flashcards',
     component: FlashcardView,
     props: true,
@@ -31,7 +40,13 @@ const routes: RouteRecordRaw[] = [
     component: SectionCategoriesView,
   },
   {
-    path: '/sections/:categoryId',
+    path: '/sections/:categoryId/datasources',
+    name: 'section-datasources',
+    component: SectionDataSourceView,
+    props: true,
+  },
+  {
+    path: '/sections/:categoryId/:dataSourceIndex?',
     name: 'sections-detail',
     component: SectionsListView,
     props: true,
@@ -42,7 +57,13 @@ const routes: RouteRecordRaw[] = [
     component: QuizLawCategoryView,
   },
   {
-    path: '/quizlaw/:categoryId',
+    path: '/quizlaw/:categoryId/datasources',
+    name: 'quizlaw-datasources',
+    component: QuizLawDataSourceView,
+    props: true,
+  },
+  {
+    path: '/quizlaw/:categoryId/:dataSourceIndex?',
     name: 'quizlaw',
     component: QuizLawView,
     props: true,

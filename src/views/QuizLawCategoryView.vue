@@ -105,8 +105,16 @@ const loadHighScores = async () => {
 
 // Category Selection Method
 const selectCategory = (categoryId: string) => {
-    // Navigate to quiz view using router
-    router.push({ name: "quizlaw", params: { categoryId } });
+    // Check if category has multiple data sources
+    const category = categories.value.find(c => c.id === categoryId);
+    
+    if (category?.dataSources && category.dataSources.length > 1) {
+        // Navigate to data source selection view
+        router.push({ name: "quizlaw-datasources", params: { categoryId } });
+    } else {
+        // Navigate to quiz view using router
+        router.push({ name: "quizlaw", params: { categoryId } });
+    }
 };
 
 // Initialize categories on mount

@@ -94,7 +94,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { categoryStores } from "../data/categoryStores";
 import { fetchCategories } from "../services/api";
 import { getCategoriesCache, isCacheValid } from "../services/cache";
-import { filterQuestions } from "../services/filterService";
+import { filterQuestionsByDataSource } from "../services/filterService";
 import { generateQuizQuestions } from "../services/quizService";
 import { calculateCountdownTime, calculateAnswerScore, formatTime } from "../services/scoreService";
 import { useHeader } from "../composables/useHeader";
@@ -108,8 +108,12 @@ const { setHeader, resetHeader } = useHeader();
 // Constants
 const QUIZ_QUESTION_COUNT = 20;
 
-// Get categoryId from route params
+// Get categoryId and dataSourceIndex from route params
 const categoryId = computed(() => route.params.categoryId as string);
+const dataSourceIndex = computed(() => {
+    const index = route.params.dataSourceIndex;
+    return index !== undefined ? parseInt(index as string, 10) : undefined;
+});
 
 // State
 const isLoading = ref(true);
@@ -263,13 +267,25 @@ const initializeQuiz = async () => {
         return;
     }
 
-    // Set header title and subtitle
-    setHeader(selectedStore.nameTh, selectedStore.nameEn);
+    // Set header title and subtitle based on the selected category or data source
+    if (dataSourceIndex.value !== undefined && selectedStore.dataSources) {
+        const dataSource = selectedStore.dataSources[dataSourceIndex.value];
+        if (dataSource) {
+            const title = dataSource.nameTh || selectedStore.nameTh;
+            const subtitle = dataSource.nameEn || selectedStore.nameEn;
+            setHeader(title, subtitle);
+        } else {
+            setHeader(selectedStore.nameTh, selectedStore.nameEn);
+        }
+    } else {
+        setHeader(selectedStore.nameTh, selectedStore.nameEn);
+    }
 
-    // Apply question filtering
-    const filteredQuestions = await filterQuestions(
+    // Apply question filtering based on data source
+    const filteredQuestions = await filterQuestionsByDataSource(
         categoryId.value,
-        selectedStore.questions
+        selectedStore.questions,
+        dataSourceIndex.value
     );
 
     // Generate quiz questions
