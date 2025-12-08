@@ -65,6 +65,26 @@
       "descriptionApiPath": "constitution_code",
       "questions": [
       ]
+    },
+    {
+      "id": "กฎหมายแพ่งและอาญารวม",
+      "nameTh": "กฎหมายแพ่งและอาญารวม",
+      "nameEn": "Combined Civil and Criminal Law",
+      "icon": "⚖️",
+      "dataSources": [
+        {
+          "apiFilename": "civil_and_commercial_code",
+          "filterFilename": "civil/civil.json",
+          "descriptionApiPath": "civil_and_commercial_code"
+        },
+        {
+          "apiFilename": "criminal_code",
+          "filterFilename": "criminal/criminal.json",
+          "descriptionApiPath": "criminal_code"
+        }
+      ],
+      "questions": [
+      ]
     }
   ]
 }

@@ -33,6 +33,10 @@ async function loadFilterFile(filterFilename: string): Promise<QuestionFilter | 
 
 /**
  * Get filter data for a category ID
+ * Supports three formats for backward compatibility:
+ * 1. Single filterFilename string (legacy)
+ * 2. Array of filterFilename strings
+ * 3. dataSources array with paired apiFilename/filterFilename/descriptionApiPath (new format)
  * @param categoryId - The category ID
  * @returns Promise with QuestionFilter or null if not found
  */
@@ -44,18 +48,57 @@ async function getCategoryFilterData(categoryId: string): Promise<QuestionFilter
 
   // Find the category in config
   const categoryConfig = categoriesConfig.categories.find(c => c.id === categoryId);
-  if (!categoryConfig || !categoryConfig.filterFilename) {
+  if (!categoryConfig) {
+    console.log(`Category not found: ${categoryId}`);
+    return null;
+  }
+
+  let filterFilenames: string[] = [];
+
+  // New format: dataSources array (highest priority)
+  if (categoryConfig.dataSources && Array.isArray(categoryConfig.dataSources)) {
+    filterFilenames = categoryConfig.dataSources
+      .map(ds => ds.filterFilename)
+      .filter(filename => filename); // Filter out undefined/null
+  }
+  // Legacy format: filterFilename field
+  else if (categoryConfig.filterFilename) {
+    // Support both single string (backward compatible) and array of strings
+    filterFilenames = Array.isArray(categoryConfig.filterFilename) 
+      ? categoryConfig.filterFilename 
+      : [categoryConfig.filterFilename];
+  }
+
+  // If no filter filenames found, return null (means allow all questions)
+  if (filterFilenames.length === 0) {
     console.log(`No filter filename found for category: ${categoryId}`);
     return null;
   }
 
-  // Load the filter
-  const filter = await loadFilterFile(categoryConfig.filterFilename);
-  if (filter) {
-    loadedFilters.set(categoryId, filter);
-  }
+  // Load all filter files and merge their allowed question IDs
+  const allAllowedIds: string[] = [];
   
-  return filter;
+  for (const filename of filterFilenames) {
+    const filter = await loadFilterFile(filename);
+    if (filter && filter.allowedQuestionIds) {
+      allAllowedIds.push(...filter.allowedQuestionIds);
+    }
+  }
+
+  // If no valid filters were loaded, return null
+  if (allAllowedIds.length === 0) {
+    console.log(`No valid filters loaded for category: ${categoryId}`);
+    return null;
+  }
+
+  // Create a merged filter with deduplicated question IDs
+  const mergedFilter: QuestionFilter = {
+    categoryId,
+    allowedQuestionIds: [...new Set(allAllowedIds)], // Remove duplicates
+  };
+
+  loadedFilters.set(categoryId, mergedFilter);
+  return mergedFilter;
 }
 
 /**
