@@ -8,8 +8,7 @@
       "apiFilename": "civil_and_commercial_code",
       "filterFilename": "civil/loan.json",
       "descriptionApiPath": "civil_and_commercial_code",
-      "questions": [
-      ]
+      "questions": []
     },
     {
       "id": "กฎหมายอาญา 2",
@@ -19,8 +18,7 @@
       "apiFilename": "criminal_code",
       "filterFilename": "criminal/criminal_2.json",
       "descriptionApiPath": "criminal_code",
-      "questions": [
-      ]
+      "questions": []
     },
     {
       "id": "กฎหมายมรดก",
@@ -30,8 +28,7 @@
       "apiFilename": "civil_and_commercial_code",
       "filterFilename": "civil/succession.json",
       "descriptionApiPath": "civil_and_commercial_code",
-      "questions": [
-      ]
+      "questions": []
     },
     {
       "id": "กฎหมายวิธีพิจารณาความแพ่ง 2",
@@ -41,8 +38,7 @@
       "apiFilename": "civil_procedure_code",
       "filterFilename": "civil_procedure/civil_procedure_2.json",
       "descriptionApiPath": "civil_procedure_code",
-      "questions": [
-      ]
+      "questions": []
     },
     {
       "id": "กฎหมายวิธีพิจารณาความอาญา 1",
@@ -52,8 +48,7 @@
       "apiFilename": "criminal_procedure_code",
       "filterFilename": "criminal_procedure/criminal_procedure_1.json",
       "descriptionApiPath": "criminal_procedure_code",
-      "questions": [
-      ]
+      "questions": []
     },
     {
       "id": "กฎหมายสถาบันการเงิน",
@@ -63,8 +58,7 @@
       "apiFilename": "constitution_code",
       "filterFilename": "constitution/finance.json",
       "descriptionApiPath": "constitution_code",
-      "questions": [
-      ]
+      "questions": []
     },
     {
       "id": "กฎหมายแพ่งและอาญารวม",
@@ -75,16 +69,19 @@
         {
           "apiFilename": "civil_and_commercial_code",
           "filterFilename": "civil/civil.json",
-          "descriptionApiPath": "civil_and_commercial_code"
+          "descriptionApiPath": "civil_and_commercial_code",
+          "nameTh": "กฎหมายแพ่ง",
+          "nameEn": "Civil Law"
         },
         {
           "apiFilename": "criminal_code",
           "filterFilename": "criminal/criminal.json",
-          "descriptionApiPath": "criminal_code"
+          "descriptionApiPath": "criminal_code",
+          "nameTh": "กฎหมายอาญา",
+          "nameEn": "Criminal Law"
         }
       ],
-      "questions": [
-      ]
+      "questions": []
     }
   ]
 }

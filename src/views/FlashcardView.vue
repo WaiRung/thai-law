@@ -53,7 +53,7 @@ import {
     isCacheValid,
     getDescriptionsCache,
 } from "../services/cache";
-import { filterQuestions } from "../services/filterService";
+import { filterQuestionsByDataSource } from "../services/filterService";
 import type {
     Flashcard,
     CategoryStore,
@@ -65,8 +65,12 @@ const router = useRouter();
 const route = useRoute();
 const { setHeader, resetHeader } = useHeader();
 
-// Get categoryId from route params
+// Get categoryId and dataSourceIndex from route params
 const categoryId = computed(() => route.params.categoryId as string);
+const dataSourceIndex = computed(() => {
+    const index = route.params.dataSourceIndex;
+    return index !== undefined ? parseInt(index as string, 10) : undefined;
+});
 
 // State
 const cards = ref<Flashcard[]>([]);
@@ -135,13 +139,25 @@ const loadFlashcards = async () => {
         return;
     }
 
-    // Set header title and subtitle based on the selected category
-    setHeader(selectedStore.nameTh, selectedStore.nameEn);
+    // Set header title and subtitle based on the selected category or data source
+    if (dataSourceIndex.value !== undefined && selectedStore.dataSources) {
+        const dataSource = selectedStore.dataSources[dataSourceIndex.value];
+        if (dataSource) {
+            const title = dataSource.nameTh || selectedStore.nameTh;
+            const subtitle = dataSource.nameEn || selectedStore.nameEn;
+            setHeader(title, subtitle);
+        } else {
+            setHeader(selectedStore.nameTh, selectedStore.nameEn);
+        }
+    } else {
+        setHeader(selectedStore.nameTh, selectedStore.nameEn);
+    }
 
-    // Apply question filtering based on allowed IDs
-    const filteredQuestions = await filterQuestions(
+    // Apply question filtering based on allowed IDs and data source
+    const filteredQuestions = await filterQuestionsByDataSource(
         categoryId.value,
-        selectedStore.questions
+        selectedStore.questions,
+        dataSourceIndex.value
     );
 
     cards.value = [...filteredQuestions];

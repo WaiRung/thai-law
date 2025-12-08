@@ -5,13 +5,24 @@ export interface Flashcard {
   title?: string; // Optional title for whole sections from complex format
 }
 
+export interface DataSource {
+  apiFilename: string;
+  filterFilename: string;
+  descriptionApiPath: string;
+  nameTh?: string; // Optional display name for the data source
+  nameEn?: string; // Optional display name for the data source
+}
+
 export interface CategoryStore {
   id: string;
   nameTh: string;
   nameEn: string;
   icon: string;
   questions: Flashcard[];
-  apiFilename?: string; // Optional: Used for API filename mapping
+  apiFilename?: string; // Optional: Used for API filename mapping (single source)
+  filterFilename?: string; // Optional: Used for filter filename (single source)
+  descriptionApiPath?: string; // Optional: Used for description path (single source)
+  dataSources?: DataSource[]; // Optional: Used for multiple data sources
 }
 
 export interface GameState {

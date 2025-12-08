@@ -232,3 +232,174 @@ export async function getTotalSectionsCount(): Promise<number> {
     0,
   );
 }
+
+/**
+ * Get sections for a specific category and data source
+ * @param categoryId - The category ID to get sections for
+ * @param dataSourceIndex - Optional data source index to filter by
+ * @param categories - Optional array of CategoryStore to use instead of static data
+ * @returns Promise with CategorySectionsWithContent for the specific category/datasource
+ */
+export async function getCategoryDataSourceSections(
+  categoryId: string,
+  dataSourceIndex: number | undefined,
+  categories?: CategoryStore[],
+): Promise<CategorySectionsWithContent | null> {
+  // Use provided categories or fall back to static data
+  const categoryData = categories || categoryStores;
+
+  // Load descriptions from cache
+  const descriptionsCache = await getDescriptionsCache();
+
+  // Find the category config
+  const categoryConfig = categoriesConfig.categories.find(c => c.id === categoryId);
+  if (!categoryConfig) {
+    console.warn(`Category config not found for: ${categoryId}`);
+    return null;
+  }
+
+  // Find the corresponding category store
+  const categoryStore = categoryData.find(store => store.id === categoryId);
+  if (!categoryStore) {
+    console.warn(`Category store not found for: ${categoryId}`);
+    return null;
+  }
+
+  let filterFilename: string | null = null;
+
+  // If dataSourceIndex is provided, use that specific data source
+  if (dataSourceIndex !== undefined) {
+    if (categoryConfig.dataSources && Array.isArray(categoryConfig.dataSources)) {
+      if (dataSourceIndex >= 0 && dataSourceIndex < categoryConfig.dataSources.length) {
+        filterFilename = categoryConfig.dataSources[dataSourceIndex].filterFilename;
+      } else {
+        console.warn(`Invalid dataSourceIndex ${dataSourceIndex} for category: ${categoryId}`);
+        return null;
+      }
+    } else {
+      console.warn(`No dataSources array for category: ${categoryId}`);
+      return null;
+    }
+  } else {
+    // No dataSourceIndex specified - use legacy single filterFilename or merge all dataSources
+    if (categoryConfig.dataSources && Array.isArray(categoryConfig.dataSources)) {
+      // Has multiple data sources but no specific index - merge all
+      const allAllowedIds: string[] = [];
+      for (const ds of categoryConfig.dataSources) {
+        const filter = await loadFilter(ds.filterFilename);
+        if (filter && filter.allowedQuestionIds) {
+          allAllowedIds.push.apply(allAllowedIds, filter.allowedQuestionIds);
+        }
+      }
+      
+      if (allAllowedIds.length === 0) {
+        return null;
+      }
+
+      // Create sections from merged allowed IDs
+      const questionMap = new Map<string, Flashcard>();
+      categoryStore.questions.forEach((q) => {
+        questionMap.set(q.id, q);
+      });
+
+      const sectionsWithContent: SectionContent[] = [];
+      const sortedSectionIds = [...new Set(allAllowedIds)].sort((a, b) => {
+        const extractNumber = (str: string) => {
+          const match = str.match(/มาตรา\s+(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
+        return extractNumber(a) - extractNumber(b);
+      });
+
+      for (const sectionId of sortedSectionIds) {
+        const flashcard = questionMap.get(sectionId);
+        const description = descriptionsCache[sectionId];
+
+        if (flashcard) {
+          sectionsWithContent.push({
+            id: flashcard.id,
+            question: flashcard.question,
+            answer: flashcard.answer,
+            title: flashcard.title,
+            descriptions: description?.descriptions,
+          });
+        }
+      }
+
+      return {
+        categoryId,
+        categoryName: categoryConfig.nameTh,
+        sections: sectionsWithContent,
+      };
+    } else if (categoryConfig.filterFilename) {
+      filterFilename = categoryConfig.filterFilename;
+    } else {
+      console.warn(`No filter configuration for category: ${categoryId}`);
+      return null;
+    }
+  }
+
+  if (!filterFilename) {
+    return null;
+  }
+
+  // Load the specific filter
+  const filter = await loadFilter(filterFilename);
+  if (!filter || !filter.allowedQuestionIds || filter.allowedQuestionIds.length === 0) {
+    console.warn(`No valid filter loaded for category: ${categoryId}`);
+    return null;
+  }
+
+  // Create a map of question IDs to flashcard data for quick lookup
+  const questionMap = new Map<string, Flashcard>();
+  categoryStore.questions.forEach((q) => {
+    questionMap.set(q.id, q);
+  });
+
+  // Get section content for allowed question IDs
+  const sectionsWithContent: SectionContent[] = [];
+  const sortedSectionIds = [...filter.allowedQuestionIds].sort((a, b) => {
+    const extractNumber = (str: string) => {
+      const match = str.match(/มาตรา\s+(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    };
+    return extractNumber(a) - extractNumber(b);
+  });
+
+  for (const sectionId of sortedSectionIds) {
+    const flashcard = questionMap.get(sectionId);
+    const description = descriptionsCache[sectionId];
+
+    if (flashcard) {
+      sectionsWithContent.push({
+        id: flashcard.id,
+        question: flashcard.question,
+        answer: flashcard.answer,
+        title: flashcard.title,
+        descriptions: description?.descriptions,
+      });
+    } else {
+      sectionsWithContent.push({
+        id: sectionId,
+        question: sectionId,
+        answer: "เนื้อหายังไม่มีในระบบ",
+        descriptions: description?.descriptions,
+      });
+    }
+  }
+
+  // Get display name based on data source
+  let categoryName = categoryConfig.nameTh;
+  if (dataSourceIndex !== undefined && categoryConfig.dataSources) {
+    const dataSource = categoryConfig.dataSources[dataSourceIndex];
+    if (dataSource && dataSource.nameTh) {
+      categoryName = dataSource.nameTh;
+    }
+  }
+
+  return {
+    categoryId,
+    categoryName,
+    sections: sectionsWithContent,
+  };
+}

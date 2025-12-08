@@ -72,7 +72,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import DescriptionModal from "../components/DescriptionModal.vue";
-import { getAllSections } from "../services/sectionService";
+import { getCategoryDataSourceSections } from "../services/sectionService";
 import { categoryStores } from "../data/categoryStores";
 import { fetchCategories } from "../services/api";
 import {
@@ -98,9 +98,10 @@ interface CategorySections {
     sections: SectionContent[];
 }
 
-// Accept categoryId as a prop
+// Accept categoryId and optional dataSourceIndex as props
 const props = defineProps<{
     categoryId: string;
+    dataSourceIndex?: string;
 }>();
 
 const { setHeader, resetHeader } = useHeader();
@@ -200,17 +201,25 @@ const loadSections = async () => {
         await loadCategories();
         // Load descriptions from cache
         descriptionsCache.value = await getDescriptionsCache();
-        // Pass categories to getAllSections
-        const allSections = await getAllSections(categories.value);
-        // Filter to only show the selected category
-        categorySections.value = allSections.filter(
-            cat => cat.categoryId === props.categoryId
+        
+        // Parse dataSourceIndex if provided
+        const dataSourceIdx = props.dataSourceIndex !== undefined 
+            ? parseInt(props.dataSourceIndex, 10) 
+            : undefined;
+        
+        // Get sections for the specific category and data source
+        const categorySection = await getCategoryDataSourceSections(
+            props.categoryId,
+            dataSourceIdx,
+            categories.value
         );
 
-        // Set header to show the current category name
-        if (categorySections.value.length > 0) {
-            const categoryName = categorySections.value[0].categoryName;
-            setHeader(categoryName, "รายการมาตรา");
+        if (categorySection) {
+            categorySections.value = [categorySection];
+            // Set header to show the current category/data source name
+            setHeader(categorySection.categoryName, "รายการมาตรา");
+        } else {
+            categorySections.value = [];
         }
     } catch (error) {
         console.error("Failed to load sections:", error);
