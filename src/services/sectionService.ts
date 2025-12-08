@@ -288,7 +288,7 @@ export async function getCategoryDataSourceSections(
       for (const ds of categoryConfig.dataSources) {
         const filter = await loadFilter(ds.filterFilename);
         if (filter && filter.allowedQuestionIds) {
-          allAllowedIds.push(...filter.allowedQuestionIds);
+          allAllowedIds.push.apply(allAllowedIds, filter.allowedQuestionIds);
         }
       }
       

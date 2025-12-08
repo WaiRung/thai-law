@@ -199,13 +199,13 @@ export async function loadDataSourceFilter(
   // Find the category in config
   const categoryConfig = categoriesConfig.categories.find(c => c.id === categoryId);
   if (!categoryConfig) {
-    console.log(`Category not found: ${categoryId}`);
+    console.warn(`Category not found: ${categoryId}`);
     return null;
   }
 
   // Check if dataSources array exists and has the requested index
   if (!categoryConfig.dataSources || !Array.isArray(categoryConfig.dataSources)) {
-    console.log(`No dataSources array for category: ${categoryId}`);
+    console.warn(`No dataSources array for category: ${categoryId}`);
     return null;
   }
 
@@ -216,7 +216,7 @@ export async function loadDataSourceFilter(
 
   const dataSource = categoryConfig.dataSources[dataSourceIndex];
   if (!dataSource.filterFilename) {
-    console.log(`No filter filename for data source ${dataSourceIndex} in category: ${categoryId}`);
+    console.warn(`No filter filename for data source ${dataSourceIndex} in category: ${categoryId}`);
     return null;
   }
 
