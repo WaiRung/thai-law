@@ -123,7 +123,7 @@ const currentDescriptions = ref<DescriptionContent[]>([]);
 const cleanAnswerForDisplay = (answer: string, section: SectionContent): string => {
     const lines = answer.split('\n');
     const cleanedLines: string[] = [];
-    const isFullSection = (
+    const isShowBracketForSubsection = (
         section.title && !section.id.includes('อนุ')) ||
         section.id.includes('วรรค');
 
@@ -140,7 +140,7 @@ const cleanAnswerForDisplay = (answer: string, section: SectionContent): string 
         if (subsectionMatch) {
             const [, spaces, id, content] = subsectionMatch;
 
-            if (isFullSection) {
+            if (isShowBracketForSubsection) {
                 // For full sections: Keep the subsection ID
                 cleanedLines.push(`${spaces}(${id}) ${content}`);
             } else {
