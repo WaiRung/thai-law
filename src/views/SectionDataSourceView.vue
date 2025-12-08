@@ -36,9 +36,6 @@ const loadCategoryData = async () => {
         const loadedCategories = await loadCategories();
         const categories = loadedCategories || categoryStores;
 
-        console.log('Loaded category', category.value);
-        console.log('Data sources', category.value?.dataSources);
-
         category.value = categories.find((c) => c.id === categoryId) || null;
 
         if (!category.value) {
@@ -46,6 +43,9 @@ const loadCategoryData = async () => {
             router.replace({ name: "sections-list" });
             return;
         }
+
+        console.log('Loaded category', category.value);
+        console.log('Data sources', category.value?.dataSources);
 
         // Set header
         setHeader(category.value.nameTh, category.value.nameEn);
