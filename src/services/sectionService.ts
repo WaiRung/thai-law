@@ -51,16 +51,50 @@ async function loadFilter(filterFilename: string): Promise<QuestionFilter | null
 
 /**
  * Load all filters dynamically from the config
+ * Supports three formats for backward compatibility:
+ * 1. Single filterFilename string (legacy)
+ * 2. Array of filterFilename strings
+ * 3. dataSources array with paired apiFilename/filterFilename/descriptionApiPath (new format)
  * @returns Promise with array of QuestionFilter
  */
 async function loadAllFilters(): Promise<QuestionFilter[]> {
   const filters: QuestionFilter[] = [];
   
   for (const category of categoriesConfig.categories) {
-    if (category.filterFilename) {
-      const filter = await loadFilter(category.filterFilename);
-      if (filter) {
-        filters.push(filter);
+    let filterFilenames: string[] = [];
+
+    // New format: dataSources array (highest priority)
+    if (category.dataSources && Array.isArray(category.dataSources)) {
+      filterFilenames = category.dataSources
+        .map(ds => ds.filterFilename)
+        .filter((filename): filename is string => filename != null && filename !== ''); // Filter out undefined/null/empty strings
+    }
+    // Legacy format: filterFilename field
+    else if (category.filterFilename) {
+      // Support both single string (backward compatible) and array of strings
+      filterFilenames = Array.isArray(category.filterFilename) 
+        ? category.filterFilename 
+        : [category.filterFilename];
+    }
+
+    // If we have filter filenames, load and merge them
+    if (filterFilenames.length > 0) {
+      // Load all filter files for this category
+      const categoryAllowedIds: string[] = [];
+      
+      for (const filename of filterFilenames) {
+        const filter = await loadFilter(filename);
+        if (filter && filter.allowedQuestionIds) {
+          categoryAllowedIds.push(...filter.allowedQuestionIds);
+        }
+      }
+
+      // If any filters were loaded, create a merged filter for this category
+      if (categoryAllowedIds.length > 0) {
+        filters.push({
+          categoryId: category.id,
+          allowedQuestionIds: [...new Set(categoryAllowedIds)], // Remove duplicates
+        });
       }
     }
   }

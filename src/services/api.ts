@@ -34,16 +34,32 @@ const API_CONFIG = {
 };
 
 /**
- * Category ID to filename mapping
- * Maps Thai category IDs to their corresponding JSON filenames
+ * Category ID to filename(s) mapping
+ * Maps Thai category IDs to their corresponding JSON filename(s)
+ * Supports three formats for backward compatibility:
+ * 1. Single apiFilename string (legacy)
+ * 2. Array of apiFilename strings
+ * 3. dataSources array with paired apiFilename/filterFilename/descriptionApiPath (new format)
  * This mapping is loaded from the categories configuration file
  */
-const CATEGORY_FILE_MAP: Record<string, string> = categoriesConfig.categories.reduce(
+const CATEGORY_FILE_MAP: Record<string, string[]> = categoriesConfig.categories.reduce(
   (map, category) => {
-    map[category.id] = category.apiFilename;
+    // New format: dataSources array (highest priority)
+    if (category.dataSources && Array.isArray(category.dataSources)) {
+      map[category.id] = category.dataSources
+        .map(ds => ds.apiFilename)
+        .filter((filename): filename is string => filename != null && filename !== ''); // Filter out undefined/null/empty strings
+    }
+    // Legacy format: apiFilename field
+    else if (category.apiFilename) {
+      // Support both single string (backward compatible) and array of strings
+      map[category.id] = Array.isArray(category.apiFilename) 
+        ? category.apiFilename 
+        : [category.apiFilename];
+    }
     return map;
   },
-  {} as Record<string, string>
+  {} as Record<string, string[]>
 );
 
 /**
@@ -337,6 +353,7 @@ export async function fetchCategories(): Promise<CategoryStore[]> {
 
 /**
  * Fetch a specific category by ID
+ * Supports both single API file (backward compatible) and multiple API files
  * @param categoryId - The ID of the category to fetch
  * @returns Promise with CategoryStore
  */
@@ -347,60 +364,70 @@ export async function fetchCategoryById(
     throw new Error("API_BASE_URL not configured");
   }
 
-  // Get the filename for this category
-  const filename = CATEGORY_FILE_MAP[categoryId];
-  if (!filename) {
+  // Get the filename(s) for this category
+  const filenames = CATEGORY_FILE_MAP[categoryId];
+  if (!filenames || filenames.length === 0) {
     throw new Error(`Unknown category ID: ${categoryId}`);
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+  // Fetch all API files and merge questions
+  const allQuestions: any[] = [];
+  
+  for (const filename of filenames) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
-  try {
-    // Construct the URL using URL constructor for robust URL building
-    const url = new URL(`${filename}.json`, API_CONFIG.baseUrl).toString();
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      // Construct the URL using URL constructor for robust URL building
+      const url = new URL(`${filename}.json`, API_CONFIG.baseUrl).toString();
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    // Validate category structure
-    // Map the response data structure to our expected format
-    // The API returns { [categoryName]: questions[] }
-    const categoryName = Object.keys(data)[0];
-    const questions = data[categoryName];
-
-    // Construct the full category object
-    const category = {
-      id: categoryId,
-      nameTh: categoryId,
-      nameEn: filename
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" "),
-      icon: "📚",
-      questions: questions,
-    };
-
-    validateCategory(category);
-    return category;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error) {
-      if (error.name === "AbortError") {
-        throw new Error("API request timeout");
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
       }
-      throw error;
+
+      const data = await response.json();
+      // The API returns { [categoryName]: questions[] }
+      const categoryName = Object.keys(data)[0];
+      const questions = data[categoryName];
+      
+      if (Array.isArray(questions)) {
+        allQuestions.push(...questions);
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          throw new Error("API request timeout");
+        }
+        throw error;
+      }
+      throw new Error("Unknown error occurred while fetching category");
     }
-    throw new Error("Unknown error occurred while fetching category");
   }
+
+  // Use the first filename for generating the English name
+  const firstFilename = filenames[0];
+  
+  // Construct the full category object with merged questions
+  const category = {
+    id: categoryId,
+    nameTh: categoryId,
+    nameEn: firstFilename
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" "),
+    icon: "📚",
+    questions: allQuestions,
+  };
+
+  validateCategory(category);
+  return category;
 }

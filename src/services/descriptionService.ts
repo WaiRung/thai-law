@@ -8,14 +8,28 @@ const DESCRIPTION_API_BASE_URL =
   "https://raw.githubusercontent.com/WaiRung/thai-law-data/main/api/descriptions";
 
 /**
- * Build category ID to API path mapping from config
- * Maps Thai category names to their corresponding API directory names
+ * Build category ID to API path(s) mapping from config
+ * Maps Thai category names to their corresponding API directory name(s)
+ * Supports three formats for backward compatibility:
+ * 1. Single descriptionApiPath string (legacy)
+ * 2. Array of descriptionApiPath strings
+ * 3. dataSources array with paired apiFilename/filterFilename/descriptionApiPath (new format)
  */
-function buildCategoryApiMap(): Record<string, string> {
-  const map: Record<string, string> = {};
+function buildCategoryApiMap(): Record<string, string[]> {
+  const map: Record<string, string[]> = {};
   for (const category of categoriesConfig.categories) {
-    if (category.descriptionApiPath) {
-      map[category.id] = category.descriptionApiPath;
+    // New format: dataSources array (highest priority)
+    if (category.dataSources && Array.isArray(category.dataSources)) {
+      map[category.id] = category.dataSources
+        .map(ds => ds.descriptionApiPath)
+        .filter((path): path is string => path != null && path !== ''); // Filter out undefined/null/empty strings
+    }
+    // Legacy format: descriptionApiPath field
+    else if (category.descriptionApiPath) {
+      // Support both single string (backward compatible) and array of strings
+      map[category.id] = Array.isArray(category.descriptionApiPath) 
+        ? category.descriptionApiPath 
+        : [category.descriptionApiPath];
     }
   }
   return map;
@@ -50,6 +64,7 @@ function parseSectionIdToFilename(sectionId: string): string {
 
 /**
  * Fetch description for a single section
+ * Tries multiple API paths if available (supports both single and multiple paths)
  * @param categoryId - Category ID (Thai name)
  * @param sectionId - Section ID (e.g., "มาตรา 656")
  * @returns Promise with SectionDescription or null if not found
@@ -58,8 +73,8 @@ export async function fetchSectionDescription(
   categoryId: string,
   sectionId: string
 ): Promise<SectionDescription | null> {
-  const categoryPath = CATEGORY_API_MAP[categoryId];
-  if (!categoryPath) {
+  const categoryPaths = CATEGORY_API_MAP[categoryId];
+  if (!categoryPaths || categoryPaths.length === 0) {
     // Category doesn't have a description API path configured - this is expected
     return null;
   }
@@ -70,28 +85,34 @@ export async function fetchSectionDescription(
     return null;
   }
 
-  const url = `${DESCRIPTION_API_BASE_URL}/${categoryPath}/${filename}`;
+  // Try each API path until we find the description
+  for (const categoryPath of categoryPaths) {
+    const url = `${DESCRIPTION_API_BASE_URL}/${categoryPath}/${filename}`;
 
-  try {
-    const response = await fetch(url);
+    try {
+      const response = await fetch(url);
 
-    // 404 is expected for sections without descriptions - handle silently
-    if (response.status === 404) {
-      return null;
+      // 404 is expected for sections without descriptions - try next path
+      if (response.status === 404) {
+        continue;
+      }
+
+      // Other non-success responses are also handled gracefully
+      if (!response.ok) {
+        continue;
+      }
+
+      const data = await response.json();
+      return data as SectionDescription;
+    } catch {
+      // Network errors or JSON parsing errors - try next path
+      // These are expected when description files don't exist
+      continue;
     }
-
-    // Other non-success responses are also handled gracefully
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-    return data as SectionDescription;
-  } catch {
-    // Network errors or JSON parsing errors - handle silently
-    // These are expected when description files don't exist
-    return null;
   }
+
+  // No description found in any of the paths
+  return null;
 }
 
 /**
