@@ -123,7 +123,9 @@ const currentDescriptions = ref<DescriptionContent[]>([]);
 const cleanAnswerForDisplay = (answer: string, section: SectionContent): string => {
     const lines = answer.split('\n');
     const cleanedLines: string[] = [];
-    const isFullSection = section.title && !section.id.includes('อนุ');
+    const isFullSection = (
+        section.title && !section.id.includes('อนุ')) ||
+        section.id.includes('วรรค');
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -204,7 +206,7 @@ const loadSections = async () => {
         categorySections.value = allSections.filter(
             cat => cat.categoryId === props.categoryId
         );
-        
+
         // Set header to show the current category name
         if (categorySections.value.length > 0) {
             const categoryName = categorySections.value[0].categoryName;
