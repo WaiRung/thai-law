@@ -35,9 +35,12 @@ const loadCategoryData = async () => {
     try {
         const loadedCategories = await loadCategories();
         const categories = loadedCategories || categoryStores;
-        
+
+        console.log('Loaded category', category.value);
+        console.log('Data sources', category.value?.dataSources);
+
         category.value = categories.find((c) => c.id === categoryId) || null;
-        
+
         if (!category.value) {
             console.warn(`Category not found: ${categoryId}`);
             router.replace({ name: "sections-list" });
