@@ -67,7 +67,7 @@ async function loadAllFilters(): Promise<QuestionFilter[]> {
     if (category.dataSources && Array.isArray(category.dataSources)) {
       filterFilenames = category.dataSources
         .map(ds => ds.filterFilename)
-        .filter(filename => filename); // Filter out undefined/null
+        .filter((filename): filename is string => filename != null && filename !== ''); // Filter out undefined/null/empty strings
     }
     // Legacy format: filterFilename field
     else if (category.filterFilename) {

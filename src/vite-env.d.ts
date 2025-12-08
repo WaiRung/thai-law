@@ -9,9 +9,16 @@ declare module '*.vue' {
 
 // Type definitions for categories.json config structure
 declare module '../config/categories.json' {
+  /**
+   * Represents a paired data source for a category
+   * Allows combining API data, filters, and descriptions from multiple sources
+   */
   export interface DataSource {
+    /** API filename (without .json extension) for fetching question data */
     apiFilename?: string;
+    /** Filter file path (relative to src/filters/) for allowed question IDs */
     filterFilename?: string;
+    /** Description API path for fetching section descriptions */
     descriptionApiPath?: string;
   }
 

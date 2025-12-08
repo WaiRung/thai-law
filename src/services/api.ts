@@ -48,7 +48,7 @@ const CATEGORY_FILE_MAP: Record<string, string[]> = categoriesConfig.categories.
     if (category.dataSources && Array.isArray(category.dataSources)) {
       map[category.id] = category.dataSources
         .map(ds => ds.apiFilename)
-        .filter(filename => filename); // Filter out undefined/null
+        .filter((filename): filename is string => filename != null && filename !== ''); // Filter out undefined/null/empty strings
     }
     // Legacy format: apiFilename field
     else if (category.apiFilename) {

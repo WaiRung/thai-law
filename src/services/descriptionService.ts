@@ -22,7 +22,7 @@ function buildCategoryApiMap(): Record<string, string[]> {
     if (category.dataSources && Array.isArray(category.dataSources)) {
       map[category.id] = category.dataSources
         .map(ds => ds.descriptionApiPath)
-        .filter(path => path); // Filter out undefined/null
+        .filter((path): path is string => path != null && path !== ''); // Filter out undefined/null/empty strings
     }
     // Legacy format: descriptionApiPath field
     else if (category.descriptionApiPath) {
