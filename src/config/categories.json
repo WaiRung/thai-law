@@ -86,6 +86,13 @@
           "descriptionApiPath": "budgetetary_procudures_act",
           "nameTh": "พระราชบัญญัติวิธีการงบประมาณ",
           "nameEn": "Budgetetary Procudures Act"
+        },
+        {
+          "apiFilename": "state_enterprise_development_government_and_management_act",
+          "filterFilename": "state_enterprise_development_government_and_management_act/public_enterprise.json",
+          "descriptionApiPath": "state_enterprise_development_government_and_management_act",
+          "nameTh": "พระราชบัญญัติการพัฒนาการกำกับดูแลและบริหารรัฐวิสาหกิจ",
+          "nameEn": "State Enterprise Development Government and Management Act"
         }
       ],
       "questions": []
