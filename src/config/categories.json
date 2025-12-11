@@ -61,24 +61,24 @@
       "questions": []
     },
     {
-      "id": "กฎหมายแพ่งและอาญารวม",
-      "nameTh": "กฎหมายแพ่งและอาญารวม",
-      "nameEn": "Combined Civil and Criminal Law",
+      "id": "กฎหมายรัฐวิสาหกิจ",
+      "nameTh": "กฎหมายรัฐวิสาหกิจ",
+      "nameEn": "Public Enterprise Law",
       "icon": "⚖️",
       "dataSources": [
         {
-          "apiFilename": "civil_and_commercial_code",
-          "filterFilename": "civil/civil.json",
-          "descriptionApiPath": "civil_and_commercial_code",
-          "nameTh": "กฎหมายแพ่ง",
-          "nameEn": "Civil Law"
+          "apiFilename": "standart_qualifications_of_state_enterprise_directors_and_officials_act",
+          "filterFilename": "standart_qualifications_of_state_enterprise_directors_and_officials_act/public_enterprise.json",
+          "descriptionApiPath": "standart_qualifications_of_state_enterprise_directors_and_officials_act",
+          "nameTh": "พระราชบัญญัติคุณสมบัติมาตรฐานสําหรับกรรมการและพนักงานรัฐวิสาหกิจ",
+          "nameEn": "Standart Qualifications of State Enterprise Directors and Officials Act"
         },
         {
-          "apiFilename": "criminal_code",
-          "filterFilename": "criminal/criminal.json",
-          "descriptionApiPath": "criminal_code",
-          "nameTh": "กฎหมายอาญา",
-          "nameEn": "Criminal Law"
+          "apiFilename": "state_enterprise_labour_relations_act",
+          "filterFilename": "state_enterprise_labour_relations_act/public_enterprise.json",
+          "descriptionApiPath": "state_enterprise_labour_relations_act",
+          "nameTh": "พระราชบัญญัติแรงงานรัฐวิสาหกิจสัมพันธ์",
+          "nameEn": "State Enterprise Labour Relations Act"
         }
       ],
       "questions": []
