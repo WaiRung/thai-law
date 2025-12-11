@@ -79,6 +79,13 @@
           "descriptionApiPath": "state_enterprise_labour_relations_act",
           "nameTh": "พระราชบัญญัติแรงงานรัฐวิสาหกิจสัมพันธ์",
           "nameEn": "State Enterprise Labour Relations Act"
+        },
+        {
+          "apiFilename": "budgetetary_procudures_act",
+          "filterFilename": "budgetetary_procudures_act/public_enterprise.json",
+          "descriptionApiPath": "budgetetary_procudures_act",
+          "nameTh": "พระราชบัญญัติวิธีการงบประมาณ",
+          "nameEn": "Budgetetary Procudures Act"
         }
       ],
       "questions": []
