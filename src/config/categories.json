@@ -55,10 +55,22 @@
       "nameTh": "กฎหมายสถาบันการเงิน",
       "nameEn": "Financial Institution Law",
       "icon": "🏛️",
-      "apiFilename": "constitution_code",
-      "filterFilename": "constitution/finance.json",
-      "descriptionApiPath": "constitution_code",
-      "questions": []
+      "dataSources": [
+        {
+          "apiFilename": "constitution_code",
+          "filterFilename": "constitution/finance.json",
+          "descriptionApiPath": "constitution_code",
+          "nameTh": "รัฐธรรมนูญแห่งราชอาณาจักรไทย",
+          "nameEn": "Constitution of the Kingdom of Thailand"
+        },
+        {
+          "apiFilename": "budgetetary_procudures_act",
+          "filterFilename": "budgetetary_procudures_act/finance.json",
+          "descriptionApiPath": "budgetetary_procudures_act",
+          "nameTh": "พระราชบัญญัติวิธีการงบประมาณ",
+          "nameEn": "Budgetetary Procudures Act"
+        }
+      ]
     },
     {
       "id": "กฎหมายรัฐวิสาหกิจ",
