@@ -22,12 +22,17 @@
                 <p class="loading-text">กำลังโหลดภาพขนาดเต็ม...</p>
               </div>
               <img 
+                ref="imageElement"
                 :src="imageUrl" 
                 :alt="title" 
                 class="fullscreen-image"
                 :class="{ 'image-loaded': !isImageLoading }"
+                :style="imageTransformStyle"
                 @load="handleImageLoad"
                 @error="handleImageError"
+                @touchstart="handleTouchStart"
+                @touchmove="handleTouchMove"
+                @touchend="handleTouchEnd"
               />
             </div>
           </div>
@@ -38,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, watch, onMounted, onUnmounted, computed } from "vue";
 
 interface Props {
   isOpen: boolean;
@@ -54,8 +59,28 @@ const emit = defineEmits<{
 
 // Constant for minimum spinner display time
 const MODAL_SPINNER_MIN_DISPLAY_TIME = 150;
+// Zoom constraints
+const MIN_SCALE = 1;
+const MAX_SCALE = 5;
 
 const isImageLoading = ref(true);
+const imageElement = ref<HTMLImageElement | null>(null);
+
+// Touch and zoom state
+const scale = ref(1);
+const translateX = ref(0);
+const translateY = ref(0);
+const lastTouchDistance = ref(0);
+const lastTouchCenter = ref({ x: 0, y: 0 });
+const lastSingleTouchPosition = ref({ x: 0, y: 0 });
+const isPinching = ref(false);
+
+// Computed style for image transform
+const imageTransformStyle = computed(() => ({
+  transform: `translate(${translateX.value}px, ${translateY.value}px) scale(${scale.value})`,
+  transformOrigin: 'center center',
+  transition: isPinching.value ? 'none' : 'transform 0.2s ease-out'
+}));
 
 const handleClose = () => {
   emit("close");
@@ -88,12 +113,108 @@ const handleEscKey = (event: KeyboardEvent) => {
   }
 };
 
+// Calculate distance between two touch points
+const getTouchDistance = (touch1: Touch, touch2: Touch): number => {
+  const dx = touch1.clientX - touch2.clientX;
+  const dy = touch1.clientY - touch2.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+// Calculate center point between two touches
+const getTouchCenter = (touch1: Touch, touch2: Touch): { x: number; y: number } => {
+  return {
+    x: (touch1.clientX + touch2.clientX) / 2,
+    y: (touch1.clientY + touch2.clientY) / 2
+  };
+};
+
+// Handle touch start
+const handleTouchStart = (event: TouchEvent) => {
+  if (event.touches.length === 2) {
+    event.preventDefault();
+    isPinching.value = true;
+    lastTouchDistance.value = getTouchDistance(event.touches[0], event.touches[1]);
+    lastTouchCenter.value = getTouchCenter(event.touches[0], event.touches[1]);
+  } else if (event.touches.length === 1 && scale.value > MIN_SCALE) {
+    // Track single finger position for panning
+    lastSingleTouchPosition.value = {
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY
+    };
+  }
+};
+
+// Handle touch move for pinch zoom and pan
+const handleTouchMove = (event: TouchEvent) => {
+  if (event.touches.length === 2) {
+    event.preventDefault();
+    
+    const currentDistance = getTouchDistance(event.touches[0], event.touches[1]);
+    const currentCenter = getTouchCenter(event.touches[0], event.touches[1]);
+    
+    // Calculate scale change
+    if (lastTouchDistance.value > 0) {
+      const scaleChange = currentDistance / lastTouchDistance.value;
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale.value * scaleChange));
+      scale.value = newScale;
+    }
+    
+    // Calculate translation for panning (only if zoomed)
+    if (scale.value > MIN_SCALE) {
+      const deltaX = currentCenter.x - lastTouchCenter.value.x;
+      const deltaY = currentCenter.y - lastTouchCenter.value.y;
+      translateX.value += deltaX;
+      translateY.value += deltaY;
+    }
+    
+    lastTouchDistance.value = currentDistance;
+    lastTouchCenter.value = currentCenter;
+  } else if (event.touches.length === 1 && scale.value > MIN_SCALE) {
+    // Single finger pan when zoomed
+    event.preventDefault();
+    
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - lastSingleTouchPosition.value.x;
+    const deltaY = touch.clientY - lastSingleTouchPosition.value.y;
+    
+    translateX.value += deltaX;
+    translateY.value += deltaY;
+    
+    lastSingleTouchPosition.value = { x: touch.clientX, y: touch.clientY };
+  }
+};
+
+// Handle touch end
+const handleTouchEnd = (event: TouchEvent) => {
+  if (event.touches.length < 2) {
+    isPinching.value = false;
+  }
+  
+  if (event.touches.length === 1 && scale.value > MIN_SCALE) {
+    // Update single touch position for continued panning
+    lastSingleTouchPosition.value = {
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY
+    };
+  }
+};
+
+// Reset zoom and pan when closing or changing image
+const resetTransform = () => {
+  scale.value = 1;
+  translateX.value = 0;
+  translateY.value = 0;
+  isPinching.value = false;
+  lastTouchDistance.value = 0;
+};
+
 // Reset loading state when modal opens with new image
 watch(
   () => props.imageUrl,
   () => {
     if (props.isOpen) {
       isImageLoading.value = true;
+      resetTransform();
     }
   }
 );
@@ -104,9 +225,11 @@ watch(
   (newValue) => {
     if (newValue) {
       isImageLoading.value = true;
+      resetTransform();
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
+      resetTransform();
     }
   }
 );
@@ -210,8 +333,9 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  overflow: auto;
+  overflow: hidden;
   position: relative;
+  touch-action: none; /* Disable default touch behaviors like scrolling and pinch-zoom on the container */
 }
 
 .modal-loading {
@@ -256,6 +380,14 @@ onUnmounted(() => {
   border-radius: 0.5rem;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
+  user-select: none; /* Prevent text/image selection */
+  -webkit-user-select: none;
+  touch-action: none; /* Allow custom touch handling */
+  cursor: grab;
+}
+
+.fullscreen-image:active {
+  cursor: grabbing;
 }
 
 .fullscreen-image.image-loaded {
