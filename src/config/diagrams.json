@@ -1,0 +1,60 @@
+{
+  "baseUrl": "https://raw.githubusercontent.com/WaiRung/thai-law-data/main/images",
+  "diagrams": [
+    {
+      "categoryId": "กฎหมายรัฐวิสาหกิจ",
+      "categoryPath": "public_enterprise_law",
+      "nameTh": "กฎหมายรัฐวิสาหกิจ",
+      "nameEn": "Public Enterprise Law",
+      "images": [
+        {
+          "filename": "องค์ประกอบของรัฐวิสาหกิจ.png",
+          "nameTh": "องค์ประกอบของรัฐวิสาหกิจ",
+          "nameEn": "Components of State Enterprises"
+        }
+      ]
+    },
+    {
+      "categoryId": "กฎหมายสถาบันการเงิน",
+      "categoryPath": "financial_institution_law",
+      "nameTh": "กฎหมายสถาบันการเงิน",
+      "nameEn": "Financial Institution Law",
+      "images": []
+    },
+    {
+      "categoryId": "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า",
+      "categoryPath": "loan_deposit_warehousing",
+      "nameTh": "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า",
+      "nameEn": "Loan, Deposit and Warehousing",
+      "images": []
+    },
+    {
+      "categoryId": "กฎหมายอาญา 2",
+      "categoryPath": "criminal_code_2",
+      "nameTh": "กฎหมายอาญา 2",
+      "nameEn": "Criminal Code 2",
+      "images": []
+    },
+    {
+      "categoryId": "กฎหมายมรดก",
+      "categoryPath": "succession_law",
+      "nameTh": "กฎหมายมรดก",
+      "nameEn": "Succession Law",
+      "images": []
+    },
+    {
+      "categoryId": "กฎหมายวิธีพิจารณาความแพ่ง 2",
+      "categoryPath": "civil_procedure_code_2",
+      "nameTh": "กฎหมายวิธีพิจารณาความแพ่ง 2",
+      "nameEn": "Civil Procedure Code 2",
+      "images": []
+    },
+    {
+      "categoryId": "กฎหมายวิธีพิจารณาความอาญา 1",
+      "categoryPath": "criminal_procedure_code_1",
+      "nameTh": "กฎหมายวิธีพิจารณาความอาญา 1",
+      "nameEn": "Criminal Procedure Code 1",
+      "images": []
+    }
+  ]
+}
