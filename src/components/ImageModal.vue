@@ -59,6 +59,9 @@ const emit = defineEmits<{
 
 // Constant for minimum spinner display time
 const MODAL_SPINNER_MIN_DISPLAY_TIME = 150;
+// Zoom constraints
+const MIN_SCALE = 1;
+const MAX_SCALE = 5;
 
 const isImageLoading = ref(true);
 const imageElement = ref<HTMLImageElement | null>(null);
@@ -69,6 +72,7 @@ const translateX = ref(0);
 const translateY = ref(0);
 const lastTouchDistance = ref(0);
 const lastTouchCenter = ref({ x: 0, y: 0 });
+const lastSingleTouchPosition = ref({ x: 0, y: 0 });
 const isPinching = ref(false);
 
 // Computed style for image transform
@@ -131,6 +135,12 @@ const handleTouchStart = (event: TouchEvent) => {
     isPinching.value = true;
     lastTouchDistance.value = getTouchDistance(event.touches[0], event.touches[1]);
     lastTouchCenter.value = getTouchCenter(event.touches[0], event.touches[1]);
+  } else if (event.touches.length === 1 && scale.value > MIN_SCALE) {
+    // Track single finger position for panning
+    lastSingleTouchPosition.value = {
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY
+    };
   }
 };
 
@@ -145,12 +155,12 @@ const handleTouchMove = (event: TouchEvent) => {
     // Calculate scale change
     if (lastTouchDistance.value > 0) {
       const scaleChange = currentDistance / lastTouchDistance.value;
-      const newScale = Math.max(1, Math.min(5, scale.value * scaleChange));
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale.value * scaleChange));
       scale.value = newScale;
     }
     
     // Calculate translation for panning (only if zoomed)
-    if (scale.value > 1) {
+    if (scale.value > MIN_SCALE) {
       const deltaX = currentCenter.x - lastTouchCenter.value.x;
       const deltaY = currentCenter.y - lastTouchCenter.value.y;
       translateX.value += deltaX;
@@ -159,18 +169,18 @@ const handleTouchMove = (event: TouchEvent) => {
     
     lastTouchDistance.value = currentDistance;
     lastTouchCenter.value = currentCenter;
-  } else if (event.touches.length === 1 && scale.value > 1) {
+  } else if (event.touches.length === 1 && scale.value > MIN_SCALE) {
     // Single finger pan when zoomed
     event.preventDefault();
     
     const touch = event.touches[0];
-    const deltaX = touch.clientX - lastTouchCenter.value.x;
-    const deltaY = touch.clientY - lastTouchCenter.value.y;
+    const deltaX = touch.clientX - lastSingleTouchPosition.value.x;
+    const deltaY = touch.clientY - lastSingleTouchPosition.value.y;
     
     translateX.value += deltaX;
     translateY.value += deltaY;
     
-    lastTouchCenter.value = { x: touch.clientX, y: touch.clientY };
+    lastSingleTouchPosition.value = { x: touch.clientX, y: touch.clientY };
   }
 };
 
@@ -178,18 +188,11 @@ const handleTouchMove = (event: TouchEvent) => {
 const handleTouchEnd = (event: TouchEvent) => {
   if (event.touches.length < 2) {
     isPinching.value = false;
-    
-    // Only reset if user zooms out below minimum scale
-    if (scale.value < 1) {
-      scale.value = 1;
-      translateX.value = 0;
-      translateY.value = 0;
-    }
   }
   
-  if (event.touches.length === 1) {
-    // Update last touch center for single finger panning
-    lastTouchCenter.value = {
+  if (event.touches.length === 1 && scale.value > MIN_SCALE) {
+    // Update single touch position for continued panning
+    lastSingleTouchPosition.value = {
       x: event.touches[0].clientX,
       y: event.touches[0].clientY
     };
