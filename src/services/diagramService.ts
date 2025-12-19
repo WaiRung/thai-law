@@ -3,6 +3,7 @@ import diagramsConfig from "../config/diagrams.json";
 import { openDatabase, formatThaiDate, STORE_NAMES } from "./database";
 
 const CACHE_VERSION = "1.0";
+const BASE64_SIZE_MULTIPLIER = 4 / 3; // Base64 encoding increases size by ~33%
 
 /**
  * Cache entry structure stored in IndexedDB
@@ -111,8 +112,8 @@ function calculateCacheSize(cache: DiagramCache[]): number {
         // Base64 strings have a "data:image/xxx;base64," prefix followed by the encoded data
         // Remove prefix to get just the Base64 data
         const base64Data = image.data.split(',')[1] || image.data;
-        // Approximate original binary size: Base64 is ~33% larger, so divide by 1.33
-        totalSize += Math.floor(base64Data.length / 1.33);
+        // Calculate original binary size using BASE64_SIZE_MULTIPLIER (3/4 to reverse 4/3 encoding)
+        totalSize += Math.floor(base64Data.length / BASE64_SIZE_MULTIPLIER);
       }
     }
   }

@@ -115,11 +115,18 @@ const isImageLoading = (categoryId: string, imageIndex: number): boolean => {
 };
 
 /**
+ * Generate cache key for image URL cache
+ */
+const getCacheKey = (categoryId: string, filename: string): string => {
+    return `${categoryId}-${filename}`;
+};
+
+/**
  * Get the full URL for an image
  * First checks cache for Base64 data, falls back to remote URL
  */
 const getImageUrl = async (categoryId: string, categoryPath: string, filename: string): Promise<string> => {
-    const key = `${categoryId}-${filename}`;
+    const key = getCacheKey(categoryId, filename);
     
     // Return from URL cache if already loaded
     if (imageUrlCache.value[key]) {
@@ -143,7 +150,7 @@ const getImageUrl = async (categoryId: string, categoryPath: string, filename: s
  * Get image URL synchronously from cache
  */
 const getImageUrlSync = (categoryId: string, filename: string): string => {
-    const key = `${categoryId}-${filename}`;
+    const key = getCacheKey(categoryId, filename);
     return imageUrlCache.value[key] || FALLBACK_IMAGE_SVG;
 };
 
@@ -209,17 +216,25 @@ const loadDiagrams = async () => {
         (category) => category.images.length > 0
     );
 
-    // Initialize loading states and preload image URLs
+    // Collect all image preload promises for parallel execution
+    const preloadPromises: Promise<void>[] = [];
+    
+    // Initialize loading states and collect preload promises
     for (const category of diagramCategories.value) {
         for (let index = 0; index < category.images.length; index++) {
             const key = getImageKey(category.categoryId, index);
             imageLoadingStates.value[key] = true;
             
-            // Preload image URL (cache lookup or remote URL)
+            // Add preload promise for parallel execution
             const image = category.images[index];
-            await getImageUrl(category.categoryId, category.categoryPath, image.filename);
+            preloadPromises.push(
+                getImageUrl(category.categoryId, category.categoryPath, image.filename).then(() => {})
+            );
         }
     }
+    
+    // Preload all image URLs in parallel
+    await Promise.all(preloadPromises);
 };
 
 onMounted(async () => {
