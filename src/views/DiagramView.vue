@@ -44,7 +44,6 @@
                                     :class="{ 'image-loaded': !isImageLoading(category.categoryId, index) }"
                                     @load="handleImageLoad($event, category.categoryId, index)"
                                     @error="handleImageError($event, category.categoryId, index)"
-                                    loading="eager"
                                 />
                             </div>
                             <div class="image-info">
@@ -90,6 +89,9 @@ interface DiagramCategory {
 interface ImageLoadingState {
     [key: string]: boolean;
 }
+
+// Constant for loading behavior
+const SPINNER_MIN_DISPLAY_TIME = 100; // Minimum time to show spinner to prevent flashing
 
 const diagramCategories = ref<DiagramCategory[]>([]);
 const baseUrl = diagramsConfig.baseUrl;
@@ -140,7 +142,7 @@ const handleImageLoad = async (event: Event, categoryId: string, imageIndex: num
         await img.decode();
         
         // Add a small delay to prevent spinner flash for very fast loads
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, SPINNER_MIN_DISPLAY_TIME));
         
         imageLoadingStates.value[key] = false;
     } catch (error) {

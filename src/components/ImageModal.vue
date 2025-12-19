@@ -52,6 +52,9 @@ const emit = defineEmits<{
   close: [];
 }>();
 
+// Constant for minimum spinner display time
+const MODAL_SPINNER_MIN_DISPLAY_TIME = 150;
+
 const isImageLoading = ref(true);
 
 const handleClose = () => {
@@ -66,7 +69,7 @@ const handleImageLoad = async (event: Event) => {
     await img.decode();
     
     // Add a small delay to prevent spinner flash
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise(resolve => setTimeout(resolve, MODAL_SPINNER_MIN_DISPLAY_TIME));
     
     isImageLoading.value = false;
   } catch (error) {
