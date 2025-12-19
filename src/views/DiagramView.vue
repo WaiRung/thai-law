@@ -32,12 +32,19 @@
                             :key="index"
                             class="image-card"
                         >
-                            <div class="image-wrapper">
+                            <div class="image-wrapper" @click="openImageModal(category, image)">
+                                <div v-if="isImageLoading(category.categoryId, index)" class="loading-overlay">
+                                    <div class="spinner"></div>
+                                    <p class="loading-text">กำลังโหลด...</p>
+                                </div>
                                 <img
                                     :src="getImageUrl(category.categoryPath, image.filename)"
                                     :alt="image.nameTh"
                                     class="diagram-image"
-                                    @error="handleImageError"
+                                    :class="{ 'image-loaded': !isImageLoading(category.categoryId, index) }"
+                                    @load="handleImageLoad($event, category.categoryId, index)"
+                                    @error="handleImageError($event, category.categoryId, index)"
+                                    loading="eager"
                                 />
                             </div>
                             <div class="image-info">
@@ -49,12 +56,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Image Modal -->
+        <ImageModal
+            :is-open="isModalOpen"
+            :image-url="selectedImage.url"
+            :title="selectedImage.title"
+            :subtitle="selectedImage.subtitle"
+            @close="closeImageModal"
+        />
     </main>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import diagramsConfig from "../config/diagrams.json";
+import ImageModal from "../components/ImageModal.vue";
 
 interface DiagramImage {
     filename: string;
@@ -70,11 +87,37 @@ interface DiagramCategory {
     images: DiagramImage[];
 }
 
+interface ImageLoadingState {
+    [key: string]: boolean;
+}
+
 const diagramCategories = ref<DiagramCategory[]>([]);
 const baseUrl = diagramsConfig.baseUrl;
+const imageLoadingStates = ref<ImageLoadingState>({});
+const isModalOpen = ref(false);
+const selectedImage = ref({
+    url: "",
+    title: "",
+    subtitle: ""
+});
 
 // Fallback image SVG for when images fail to load
 const FALLBACK_IMAGE_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='16' fill='%236b7280' text-anchor='middle' dominant-baseline='middle'%3EImage not available%3C/text%3E%3C/svg%3E";
+
+/**
+ * Generate unique key for image loading state
+ */
+const getImageKey = (categoryId: string, imageIndex: number): string => {
+    return `${categoryId}-${imageIndex}`;
+};
+
+/**
+ * Check if an image is currently loading
+ */
+const isImageLoading = (categoryId: string, imageIndex: number): boolean => {
+    const key = getImageKey(categoryId, imageIndex);
+    return imageLoadingStates.value[key] ?? true;
+};
 
 /**
  * Get the full URL for an image
@@ -84,21 +127,74 @@ const getImageUrl = (categoryPath: string, filename: string): string => {
 };
 
 /**
- * Handle image loading errors
+ * Handle image loading success
+ * Uses decode() to ensure the image is fully decoded before hiding the spinner
  */
-const handleImageError = (event: Event) => {
+const handleImageLoad = async (event: Event, categoryId: string, imageIndex: number) => {
     const img = event.target as HTMLImageElement;
-    img.src = FALLBACK_IMAGE_SVG;
+    const key = getImageKey(categoryId, imageIndex);
+    
+    try {
+        // Wait for the image to be fully decoded
+        // This ensures large images are completely ready before removing the spinner
+        await img.decode();
+        
+        // Add a small delay to prevent spinner flash for very fast loads
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        imageLoadingStates.value[key] = false;
+    } catch (error) {
+        // If decode fails, still hide the spinner
+        console.error('Image decode error:', error);
+        imageLoadingStates.value[key] = false;
+    }
 };
 
 /**
- * Load diagram categories
+ * Handle image loading errors
+ */
+const handleImageError = (event: Event, categoryId: string, imageIndex: number) => {
+    const img = event.target as HTMLImageElement;
+    img.src = FALLBACK_IMAGE_SVG;
+    const key = getImageKey(categoryId, imageIndex);
+    imageLoadingStates.value[key] = false;
+};
+
+/**
+ * Open image in fullscreen modal
+ */
+const openImageModal = (category: DiagramCategory, image: DiagramImage) => {
+    selectedImage.value = {
+        url: getImageUrl(category.categoryPath, image.filename),
+        title: image.nameTh,
+        subtitle: image.nameEn
+    };
+    isModalOpen.value = true;
+};
+
+/**
+ * Close the image modal
+ */
+const closeImageModal = () => {
+    isModalOpen.value = false;
+};
+
+/**
+ * Load diagram categories and initialize loading states
  */
 const loadDiagrams = () => {
     // Filter categories that have images
     diagramCategories.value = diagramsConfig.diagrams.filter(
         (category) => category.images.length > 0
     );
+
+    // Initialize loading states for all images
+    diagramCategories.value.forEach((category) => {
+        category.images.forEach((_, index) => {
+            const key = getImageKey(category.categoryId, index);
+            imageLoadingStates.value[key] = true;
+        });
+    });
 };
 
 onMounted(() => {
@@ -234,6 +330,49 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.image-wrapper:hover {
+    opacity: 0.9;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    gap: 0.75rem;
+}
+
+.spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
 }
 
 .diagram-image {
@@ -241,6 +380,12 @@ onMounted(() => {
     height: 100%;
     object-fit: contain;
     padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.diagram-image.image-loaded {
+    opacity: 1;
 }
 
 .image-info {
