@@ -217,7 +217,7 @@ const loadDiagrams = async () => {
     );
 
     // Collect all image preload promises for parallel execution
-    const preloadPromises: Promise<void>[] = [];
+    const preloadPromises: Promise<unknown>[] = [];
     
     // Initialize loading states and collect preload promises
     for (const category of diagramCategories.value) {
@@ -225,10 +225,10 @@ const loadDiagrams = async () => {
             const key = getImageKey(category.categoryId, index);
             imageLoadingStates.value[key] = true;
             
-            // Add preload promise for parallel execution
+            // Add preload promise for parallel execution (called for side effects)
             const image = category.images[index];
             preloadPromises.push(
-                getImageUrl(category.categoryId, category.categoryPath, image.filename).then(() => {})
+                getImageUrl(category.categoryId, category.categoryPath, image.filename)
             );
         }
     }
