@@ -167,6 +167,9 @@ export async function getCacheMetadata(): Promise<CacheMetadata | null> {
  */
 export async function clearCache(): Promise<void> {
   try {
+    // Clear diagram cache first to ensure consistency
+    await clearDiagramCache();
+    
     const db = await openDatabase();
     
     const transaction = db.transaction([STORE_NAMES.CATEGORIES, STORE_NAMES.DESCRIPTIONS], "readwrite");
@@ -176,7 +179,7 @@ export async function clearCache(): Promise<void> {
     categoriesStore.delete("categories");
     descriptionsStore.delete("descriptions");
     
-    await new Promise<void>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       transaction.oncomplete = () => {
         console.log("Cache cleared successfully");
         db.close();
@@ -189,9 +192,6 @@ export async function clearCache(): Promise<void> {
         reject(new Error("Failed to clear cache"));
       };
     });
-    
-    // Clear diagram cache as well
-    await clearDiagramCache();
   } catch (error) {
     console.error("Error clearing cache:", error);
     throw error;

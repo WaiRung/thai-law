@@ -100,7 +100,7 @@ export async function downloadDiagramImages(): Promise<DiagramCache[]> {
 /**
  * Calculate total size of cached images in bytes
  * @param cache - Array of DiagramCache
- * @returns Total size in bytes
+ * @returns Total size in bytes (approximate original binary size)
  */
 function calculateCacheSize(cache: DiagramCache[]): number {
   let totalSize = 0;
@@ -108,8 +108,11 @@ function calculateCacheSize(cache: DiagramCache[]): number {
   for (const category of cache) {
     for (const image of category.images) {
       if (image.data) {
-        // Approximate size: Base64 string length * 0.75 (Base64 is ~33% larger than binary)
-        totalSize += Math.floor(image.data.length * 0.75);
+        // Base64 strings have a "data:image/xxx;base64," prefix followed by the encoded data
+        // Remove prefix to get just the Base64 data
+        const base64Data = image.data.split(',')[1] || image.data;
+        // Approximate original binary size: Base64 is ~33% larger, so divide by 1.33
+        totalSize += Math.floor(base64Data.length / 1.33);
       }
     }
   }

@@ -72,20 +72,7 @@ import { ref, onMounted } from "vue";
 import diagramsConfig from "../config/diagrams.json";
 import ImageModal from "../components/ImageModal.vue";
 import { getCachedDiagramImage } from "../services/diagramService";
-
-interface DiagramImage {
-    filename: string;
-    nameTh: string;
-    nameEn: string;
-}
-
-interface DiagramCategory {
-    categoryId: string;
-    categoryPath: string;
-    nameTh: string;
-    nameEn: string;
-    images: DiagramImage[];
-}
+import type { DiagramImage, DiagramCategory } from "../types/diagram";
 
 interface ImageLoadingState {
     [key: string]: boolean;
