@@ -91,8 +91,8 @@
                 <button @click="navigateToDiagrams" class="menu-item">
                     <div class="menu-item-icon">📊</div>
                     <div class="menu-item-content">
-                        <h3 class="menu-item-title">ไดอะแกรม</h3>
-                        <p class="menu-item-description">ดูไดอะแกรมประกอบกฎหมาย</p>
+                        <h3 class="menu-item-title">Diagrams</h3>
+                        <p class="menu-item-description">ดู Diagrams ประกอบกฎหมาย</p>
                     </div>
                     <div class="menu-item-arrow">
                         <svg

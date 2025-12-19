@@ -2,12 +2,12 @@
     <main class="main-content">
         <div class="diagram-container">
             <div class="header-section">
-                <h2 class="page-title">ไดอะแกรม</h2>
+                <h2 class="page-title">Diagrams</h2>
                 <p class="page-subtitle">Diagrams</p>
             </div>
 
             <div v-if="diagramCategories.length === 0" class="empty-state">
-                <p class="empty-message">ไม่มีไดอะแกรมในขณะนี้</p>
+                <p class="empty-message">ไม่มี Diagrams ในขณะนี้</p>
                 <p class="empty-submessage">No diagrams available at the moment</p>
             </div>
 
@@ -23,7 +23,7 @@
                     </div>
 
                     <div v-if="category.images.length === 0" class="no-images">
-                        <p class="no-images-text">ไม่มีไดอะแกรมในหมวดนี้</p>
+                        <p class="no-images-text">ไม่มีไ Diagrams ในหมวดนี้</p>
                     </div>
 
                     <div v-else class="images-grid">
