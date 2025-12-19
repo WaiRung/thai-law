@@ -40,24 +40,26 @@ const CATEGORY_API_MAP = buildCategoryApiMap();
 
 /**
  * Extract the base section number from a section ID
- * @param sectionId - Section ID in Thai format (e.g., "มาตรา 656", "มาตรา 656 วรรค 2")
- * @returns The section number as a string or null if not found
+ * @param sectionId - Section ID in Thai format (e.g., "มาตรา 656", "มาตรา 656 วรรค 2", "มาตรา 269/1")
+ * @returns The section number as a string (including /X suffix if present) or null if not found
  */
 function extractSectionNumber(sectionId: string): string | null {
-  const match = sectionId.match(/มาตรา\s+(\d+)/);
+  const match = sectionId.match(/มาตรา\s+(\d+(?:\/\d+)?)/);
   return match ? match[1] : null;
 }
 
 /**
  * Parse section ID to filename format
  * Converts "มาตรา XXX" or "มาตรา XXX วรรค Y" to "section_XXX.json"
- * @param sectionId - Section ID in Thai format (e.g., "มาตรา 656", "มาตรา 656 วรรค 2")
- * @returns Filename in format "section_XXX.json"
+ * Converts "มาตรา XXX/Y" to "section_XXX_Y.json"
+ * @param sectionId - Section ID in Thai format (e.g., "มาตรา 656", "มาตรา 656 วรรค 2", "มาตรา 269/1")
+ * @returns Filename in format "section_XXX.json" or "section_XXX_Y.json"
  */
 function parseSectionIdToFilename(sectionId: string): string {
   const sectionNumber = extractSectionNumber(sectionId);
   if (sectionNumber) {
-    return `section_${sectionNumber}.json`;
+    // Replace forward slash with underscore for filename
+    return `section_${sectionNumber.replace('/', '_')}.json`;
   }
   return "";
 }
