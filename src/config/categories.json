@@ -4,6 +4,7 @@
       "id": "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า",
       "nameTh": "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า",
       "nameEn": "Loan, Deposit and Warehousing",
+      "path": "loan_deposit_warehousing",
       "icon": "⚖️",
       "apiFilename": "civil_and_commercial_code",
       "filterFilename": "civil/loan.json",
@@ -14,6 +15,7 @@
       "id": "กฎหมายอาญา 2",
       "nameTh": "กฎหมายอาญา 2",
       "nameEn": "Criminal Code 2",
+      "path": "criminal_code_2",
       "icon": "⚖️",
       "apiFilename": "criminal_code",
       "filterFilename": "criminal/criminal_2.json",
@@ -24,6 +26,7 @@
       "id": "กฎหมายมรดก",
       "nameTh": "กฎหมายมรดก",
       "nameEn": "Succession Law",
+      "path": "succession_law",
       "icon": "🔨",
       "apiFilename": "civil_and_commercial_code",
       "filterFilename": "civil/succession.json",
@@ -34,6 +37,7 @@
       "id": "กฎหมายวิธีพิจารณาความแพ่ง 2",
       "nameTh": "กฎหมายวิธีพิจารณาความแพ่ง 2",
       "nameEn": "Civil Procedure Code 2",
+      "path": "civil_procedure_code_2",
       "icon": "📋",
       "apiFilename": "civil_procedure_code",
       "filterFilename": "civil_procedure/civil_procedure_2.json",
@@ -44,6 +48,7 @@
       "id": "กฎหมายวิธีพิจารณาความอาญา 1",
       "nameTh": "กฎหมายวิธีพิจารณาความอาญา 1",
       "nameEn": "Criminal Procedure Code 1",
+      "path": "criminal_procedure_code_1",
       "icon": "🧾",
       "apiFilename": "criminal_procedure_code",
       "filterFilename": "criminal_procedure/criminal_procedure_1.json",
@@ -54,6 +59,7 @@
       "id": "กฎหมายสถาบันการเงิน",
       "nameTh": "กฎหมายสถาบันการเงิน",
       "nameEn": "Financial Institution Law",
+      "path": "financial_institution_law",
       "icon": "🏛️",
       "dataSources": [
         {
@@ -77,6 +83,7 @@
       "id": "กฎหมายรัฐวิสาหกิจ",
       "nameTh": "กฎหมายรัฐวิสาหกิจ",
       "nameEn": "Public Enterprise Law",
+      "path": "public_enterprise_law",
       "icon": "⚖️",
       "dataSources": [
         {
