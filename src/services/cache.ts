@@ -1,6 +1,7 @@
 import type { CategoryStore, CacheMetadata } from "../types/flashcard";
 import type { DescriptionCache } from "../types/description";
 import { openDatabase, formatThaiDate, STORE_NAMES } from "./database";
+import { clearDiagramCache } from "./diagramService";
 
 const CACHE_VERSION = "1.0";
 
@@ -166,6 +167,9 @@ export async function getCacheMetadata(): Promise<CacheMetadata | null> {
  */
 export async function clearCache(): Promise<void> {
   try {
+    // Clear diagram cache first to ensure consistency
+    await clearDiagramCache();
+    
     const db = await openDatabase();
     
     const transaction = db.transaction([STORE_NAMES.CATEGORIES, STORE_NAMES.DESCRIPTIONS], "readwrite");

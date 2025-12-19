@@ -38,7 +38,7 @@
                                     <p class="loading-text">กำลังโหลด...</p>
                                 </div>
                                 <img
-                                    :src="getImageUrl(category.categoryPath, image.filename)"
+                                    :src="getImageUrlSync(category.categoryId, image.filename)"
                                     :alt="image.nameTh"
                                     class="diagram-image"
                                     :class="{ 'image-loaded': !isImageLoading(category.categoryId, index) }"
@@ -71,23 +71,15 @@
 import { ref, onMounted } from "vue";
 import diagramsConfig from "../config/diagrams.json";
 import ImageModal from "../components/ImageModal.vue";
-
-interface DiagramImage {
-    filename: string;
-    nameTh: string;
-    nameEn: string;
-}
-
-interface DiagramCategory {
-    categoryId: string;
-    categoryPath: string;
-    nameTh: string;
-    nameEn: string;
-    images: DiagramImage[];
-}
+import { getCachedDiagramImage } from "../services/diagramService";
+import type { DiagramImage, DiagramCategory } from "../types/diagram";
 
 interface ImageLoadingState {
     [key: string]: boolean;
+}
+
+interface ImageUrlCache {
+    [key: string]: string;
 }
 
 // Constant for loading behavior
@@ -96,6 +88,7 @@ const SPINNER_MIN_DISPLAY_TIME = 100; // Minimum time to show spinner to prevent
 const diagramCategories = ref<DiagramCategory[]>([]);
 const baseUrl = diagramsConfig.baseUrl;
 const imageLoadingStates = ref<ImageLoadingState>({});
+const imageUrlCache = ref<ImageUrlCache>({});
 const isModalOpen = ref(false);
 const selectedImage = ref({
     url: "",
@@ -122,10 +115,43 @@ const isImageLoading = (categoryId: string, imageIndex: number): boolean => {
 };
 
 /**
- * Get the full URL for an image
+ * Generate cache key for image URL cache
  */
-const getImageUrl = (categoryPath: string, filename: string): string => {
-    return `${baseUrl}/${categoryPath}/${filename}`;
+const getCacheKey = (categoryId: string, filename: string): string => {
+    return `${categoryId}-${filename}`;
+};
+
+/**
+ * Get the full URL for an image
+ * First checks cache for Base64 data, falls back to remote URL
+ */
+const getImageUrl = async (categoryId: string, categoryPath: string, filename: string): Promise<string> => {
+    const key = getCacheKey(categoryId, filename);
+    
+    // Return from URL cache if already loaded
+    if (imageUrlCache.value[key]) {
+        return imageUrlCache.value[key];
+    }
+    
+    // Try to get cached image first
+    const cachedImage = await getCachedDiagramImage(categoryId, filename);
+    if (cachedImage) {
+        imageUrlCache.value[key] = cachedImage;
+        return cachedImage;
+    }
+    
+    // Fall back to remote URL
+    const remoteUrl = `${baseUrl}/${categoryPath}/${filename}`;
+    imageUrlCache.value[key] = remoteUrl;
+    return remoteUrl;
+};
+
+/**
+ * Get image URL synchronously from cache
+ */
+const getImageUrlSync = (categoryId: string, filename: string): string => {
+    const key = getCacheKey(categoryId, filename);
+    return imageUrlCache.value[key] || FALLBACK_IMAGE_SVG;
 };
 
 /**
@@ -165,9 +191,9 @@ const handleImageError = (event: Event, categoryId: string, imageIndex: number) 
 /**
  * Open image in fullscreen modal
  */
-const openImageModal = (category: DiagramCategory, image: DiagramImage) => {
+const openImageModal = async (category: DiagramCategory, image: DiagramImage) => {
     selectedImage.value = {
-        url: getImageUrl(category.categoryPath, image.filename),
+        url: await getImageUrl(category.categoryId, category.categoryPath, image.filename),
         title: image.nameTh,
         subtitle: image.nameEn
     };
@@ -184,23 +210,35 @@ const closeImageModal = () => {
 /**
  * Load diagram categories and initialize loading states
  */
-const loadDiagrams = () => {
+const loadDiagrams = async () => {
     // Filter categories that have images
     diagramCategories.value = diagramsConfig.diagrams.filter(
         (category) => category.images.length > 0
     );
 
-    // Initialize loading states for all images
-    diagramCategories.value.forEach((category) => {
-        category.images.forEach((_, index) => {
+    // Collect all image preload promises for parallel execution
+    const preloadPromises: Promise<unknown>[] = [];
+    
+    // Initialize loading states and collect preload promises
+    for (const category of diagramCategories.value) {
+        for (let index = 0; index < category.images.length; index++) {
             const key = getImageKey(category.categoryId, index);
             imageLoadingStates.value[key] = true;
-        });
-    });
+            
+            // Add preload promise for parallel execution (called for side effects)
+            const image = category.images[index];
+            preloadPromises.push(
+                getImageUrl(category.categoryId, category.categoryPath, image.filename)
+            );
+        }
+    }
+    
+    // Preload all image URLs in parallel
+    await Promise.all(preloadPromises);
 };
 
-onMounted(() => {
-    loadDiagrams();
+onMounted(async () => {
+    await loadDiagrams();
 });
 </script>
 

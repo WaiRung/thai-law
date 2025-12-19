@@ -9,6 +9,7 @@ import {
   saveDescriptionsCache,
 } from '../services/cache';
 import { fetchAllDescriptions } from '../services/descriptionService';
+import { downloadDiagramImages, saveDiagramCache } from '../services/diagramService';
 import { getCategorySections } from '../services/sectionService';
 import type { CategoryStore, CacheMetadata } from '../types/flashcard';
 
@@ -78,6 +79,17 @@ export function useDataManager() {
         console.warn('Failed to fetch descriptions, continuing without them:', descError);
         // Don't fail the entire download if descriptions fail
         // Skip saving to avoid overwriting existing cache with empty data
+      }
+
+      // Download and cache diagram images
+      try {
+        console.log('Downloading diagram images...');
+        const diagramCache = await downloadDiagramImages();
+        await saveDiagramCache(diagramCache);
+        console.log('Diagram images cached successfully');
+      } catch (diagramError) {
+        console.warn('Failed to download diagram images, continuing without them:', diagramError);
+        // Don't fail the entire download if diagram images fail
       }
 
       // Update cache metadata
