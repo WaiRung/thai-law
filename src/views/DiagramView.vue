@@ -6,7 +6,7 @@
                 <p class="page-subtitle">Diagrams</p>
             </div>
 
-            <div v-if="!loading && diagramCategories.length === 0" class="empty-state">
+            <div v-if="diagramCategories.length === 0" class="empty-state">
                 <p class="empty-message">ไม่มีไดอะแกรมในขณะนี้</p>
                 <p class="empty-submessage">No diagrams available at the moment</p>
             </div>
@@ -70,9 +70,11 @@ interface DiagramCategory {
     images: DiagramImage[];
 }
 
-const loading = ref(false);
 const diagramCategories = ref<DiagramCategory[]>([]);
 const baseUrl = diagramsConfig.baseUrl;
+
+// Fallback image SVG for when images fail to load
+const FALLBACK_IMAGE_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='16' fill='%236b7280' text-anchor='middle' dominant-baseline='middle'%3EImage not available%3C/text%3E%3C/svg%3E";
 
 /**
  * Get the full URL for an image
@@ -86,7 +88,7 @@ const getImageUrl = (categoryPath: string, filename: string): string => {
  */
 const handleImageError = (event: Event) => {
     const img = event.target as HTMLImageElement;
-    img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='16' fill='%236b7280' text-anchor='middle' dominant-baseline='middle'%3EImage not available%3C/text%3E%3C/svg%3E";
+    img.src = FALLBACK_IMAGE_SVG;
 };
 
 /**
