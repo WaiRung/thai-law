@@ -1,6 +1,7 @@
 import type { CategoryStore, CacheMetadata } from "../types/flashcard";
 import type { DescriptionCache } from "../types/description";
 import { openDatabase, formatThaiDate, STORE_NAMES } from "./database";
+import { clearDiagramCache } from "./diagramService";
 
 const CACHE_VERSION = "1.0";
 
@@ -175,7 +176,7 @@ export async function clearCache(): Promise<void> {
     categoriesStore.delete("categories");
     descriptionsStore.delete("descriptions");
     
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       transaction.oncomplete = () => {
         console.log("Cache cleared successfully");
         db.close();
@@ -188,6 +189,9 @@ export async function clearCache(): Promise<void> {
         reject(new Error("Failed to clear cache"));
       };
     });
+    
+    // Clear diagram cache as well
+    await clearDiagramCache();
   } catch (error) {
     console.error("Error clearing cache:", error);
     throw error;

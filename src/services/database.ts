@@ -4,13 +4,14 @@
  */
 
 export const DB_NAME = "thai-law-db";
-export const DB_VERSION = 3;
+export const DB_VERSION = 4;
 
 // Object store names
 export const STORE_NAMES = {
   CATEGORIES: "categories-cache",
   DESCRIPTIONS: "descriptions",
   HIGH_SCORES: "high-scores",
+  DIAGRAMS: "diagrams",
 } as const;
 
 /**
@@ -76,6 +77,12 @@ export function openDatabase(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE_NAMES.HIGH_SCORES)) {
         db.createObjectStore(STORE_NAMES.HIGH_SCORES, { keyPath: "categoryId" });
         console.log("Created IndexedDB object store:", STORE_NAMES.HIGH_SCORES);
+      }
+      
+      // Create diagrams object store if it doesn't exist
+      if (!db.objectStoreNames.contains(STORE_NAMES.DIAGRAMS)) {
+        db.createObjectStore(STORE_NAMES.DIAGRAMS, { keyPath: "id" });
+        console.log("Created IndexedDB object store:", STORE_NAMES.DIAGRAMS);
       }
     };
   });
