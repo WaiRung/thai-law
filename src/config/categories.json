@@ -75,6 +75,13 @@
           "descriptionApiPath": "budgetetary_procudures_act",
           "nameTh": "พระราชบัญญัติวิธีการงบประมาณ",
           "nameEn": "Budgetetary Procudures Act"
+        },
+        {
+          "apiFilename": "treasury_reserves_act",
+          "filterFilename": "treasury_reserves_act/finance.json",
+          "descriptionApiPath": "treasury_reserves_act",
+          "nameTh": "พระราชบัญญัติเงินคงคลัง",
+          "nameEn": "Treasury Reserves Act"
         }
       ],
       "questions": []
