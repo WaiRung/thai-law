@@ -259,5 +259,15 @@ export async function filterQuestionsByDataSource(
   }
 
   // Filter questions using the Set for O(1) lookup
-  return questions.filter((question) => allowedIds.has(question.id));
+  // Also filter by dataSourceIndex to ensure we only get questions from this specific data source
+  return questions.filter((question) => {
+    // Check if the question ID is allowed
+    const isIdAllowed = allowedIds.has(question.id);
+    
+    // When filtering by a specific dataSourceIndex, only include questions
+    // that have a matching dataSourceIndex property
+    const isDataSourceMatch = question.dataSourceIndex === dataSourceIndex;
+    
+    return isIdAllowed && isDataSourceMatch;
+  });
 }

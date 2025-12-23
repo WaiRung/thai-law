@@ -23,13 +23,14 @@ interface ComplexQuestion {
   id: string;
   title: string;
   content: QuestionContent;
+  dataSourceIndex?: number; // Optional: Track which data source this question came from
 }
 
 /**
  * Map complex format to simple flashcard format
  * Same logic as in api.ts to ensure consistency
  */
-function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[] {
+function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIndex?: number): Flashcard[] {
   const flashcards: Flashcard[] = [];
 
   // First, create the whole section flashcard
@@ -58,12 +59,16 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[]
   const answer = answerParts.join("\n");
 
   // Add the whole section flashcard with title
-  flashcards.push({
+  const wholeSection: Flashcard = {
     id: complexQuestion.id,
     question: question,
     answer: answer,
     title: complexQuestion.title, // Preserve title for display in section list
-  });
+  };
+  if (dataSourceIndex !== undefined) {
+    wholeSection.dataSourceIndex = dataSourceIndex;
+  }
+  flashcards.push(wholeSection);
 
   // Extract section number from complexQuestion.id (e.g., "มาตรา 1" -> "1")
   const sectionNumber = complexQuestion.id.replace("มาตรา ", "");
@@ -92,11 +97,15 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[]
       const paragraphAnswer = paragraphAnswerParts.join("\n");
       
       // Add the paragraph flashcard
-      flashcards.push({
+      const paragraphCard: Flashcard = {
         id: paragraphId,
         question: paragraphQuestion,
         answer: paragraphAnswer,
-      });
+      };
+      if (dataSourceIndex !== undefined) {
+        paragraphCard.dataSourceIndex = dataSourceIndex;
+      }
+      flashcards.push(paragraphCard);
     }
   }
 
@@ -127,11 +136,15 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[]
         const subsectionAnswer = subsectionAnswerParts.join("\n");
         
         // Add the subsection flashcard
-        flashcards.push({
+        const subsectionCard: Flashcard = {
           id: subsectionId,
           question: subsectionQuestion,
           answer: subsectionAnswer,
-        });
+        };
+        if (dataSourceIndex !== undefined) {
+          subsectionCard.dataSourceIndex = dataSourceIndex;
+        }
+        flashcards.push(subsectionCard);
       }
     }
   }
@@ -150,7 +163,9 @@ function transformCategories(categories: any[]): CategoryStore[] {
       // Check if question is in complex format (has title and content)
       if (question.title !== undefined && question.content !== undefined) {
         // Map complex format to simple format (returns array)
-        const simpleQuestions = mapComplexToSimpleFormat(question as ComplexQuestion);
+        // Preserve dataSourceIndex if it exists
+        const dataSourceIndex = question.dataSourceIndex;
+        const simpleQuestions = mapComplexToSimpleFormat(question as ComplexQuestion, dataSourceIndex);
         transformedQuestions.push(...simpleQuestions);
       } else {
         // Already in simple format, just use as is
