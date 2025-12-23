@@ -183,7 +183,7 @@ function getSubsectionChoices(
       attempts++;
       const randomOffset = Math.floor(Math.random() * 10) + 1;
       const randomNum = targetNum + (Math.random() > 0.5 ? randomOffset : -randomOffset);
-      const randomStr = randomNum.toString();
+      const randomStr = Math.round(randomNum).toString();
       if (randomNum > 0 && !availableSubsections.includes(randomStr) && randomStr !== targetSubsection) {
         availableSubsections.push(randomStr);
       }
