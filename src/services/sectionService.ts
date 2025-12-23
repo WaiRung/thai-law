@@ -355,14 +355,15 @@ export async function getCategoryDataSourceSections(
   // Filter by dataSourceIndex if this category has multiple data sources
   const questionMap = new Map<string, Flashcard>();
   categoryStore.questions.forEach((q) => {
-    // If dataSourceIndex is specified and the question has a dataSourceIndex,
-    // only include questions that match the specified dataSourceIndex
-    if (dataSourceIndex !== undefined && q.dataSourceIndex !== undefined) {
+    // If a specific dataSourceIndex is requested
+    if (dataSourceIndex !== undefined) {
+      // Only include questions that have a matching dataSourceIndex
+      // Questions without dataSourceIndex are excluded when filtering by a specific source
       if (q.dataSourceIndex === dataSourceIndex) {
         questionMap.set(q.id, q);
       }
     } else {
-      // If no dataSourceIndex filtering is needed, include all questions
+      // No specific dataSourceIndex requested - include all questions
       questionMap.set(q.id, q);
     }
   });

@@ -264,10 +264,9 @@ export async function filterQuestionsByDataSource(
     // Check if the question ID is allowed
     const isIdAllowed = allowedIds.has(question.id);
     
-    // If the question has a dataSourceIndex property, check if it matches
-    // If it doesn't have the property (legacy data), include it based on ID only
-    const isDataSourceMatch = question.dataSourceIndex === undefined || 
-                               question.dataSourceIndex === dataSourceIndex;
+    // When filtering by a specific dataSourceIndex, only include questions
+    // that have a matching dataSourceIndex property
+    const isDataSourceMatch = question.dataSourceIndex === dataSourceIndex;
     
     return isIdAllowed && isDataSourceMatch;
   });
