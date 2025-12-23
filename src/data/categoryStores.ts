@@ -5,7 +5,7 @@ import categoriesConfig from "../config/categories.json";
  * Complex format interfaces for static data transformation
  */
 interface Subsection {
-  id: number;
+  id: string;
   content: string;
 }
 
