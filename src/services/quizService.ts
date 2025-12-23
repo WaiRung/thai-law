@@ -24,7 +24,7 @@ import type { QuizQuestion } from "../types/quiz";
 interface ParsedId {
   section: number;
   paragraph?: number;
-  subsection?: number;
+  subsection?: string;
 }
 
 function parseFlashcardId(id: string): ParsedId | null {
@@ -42,9 +42,9 @@ function parseFlashcardId(id: string): ParsedId | null {
   }
 
   // Check for subsection
-  const subsectionMatch = id.match(/อนุ\s+(\d+)/);
+  const subsectionMatch = id.match(/อนุ\s+(.+?)(?:\s|$)/);
   if (subsectionMatch) {
-    result.subsection = parseInt(subsectionMatch[1], 10);
+    result.subsection = subsectionMatch[1].trim();
   }
 
   return result;
@@ -134,10 +134,10 @@ function getParagraphChoices(
  * Get subsection choices
  */
 function getSubsectionChoices(
-  targetSubsection: number,
+  targetSubsection: string,
   targetSection: number,
   targetParagraph: number | undefined,
-  allSubsections: number[]
+  allSubsections: string[]
 ): string[] {
   const choices: string[] = [];
   
@@ -148,24 +148,45 @@ function getSubsectionChoices(
   
   choices.push(correctAnswer);
   
-  // Get other subsection numbers (nearest to target)
-  const otherSubsections = allSubsections
-    .filter(s => s !== targetSubsection)
-    .sort((a, b) => Math.abs(a - targetSubsection) - Math.abs(b - targetSubsection));
+  // Get other subsection strings (filter out the target)
+  const otherSubsections = allSubsections.filter(s => s !== targetSubsection);
+  
+  // Try to sort numerically if possible, otherwise keep original order
+  const sortedSubsections = [...otherSubsections].sort((a, b) => {
+    const numA = parseFloat(a);
+    const numB = parseFloat(b);
+    
+    // If both are numeric, sort by numeric distance from target
+    if (!isNaN(numA) && !isNaN(numB)) {
+      const targetNum = parseFloat(targetSubsection);
+      if (!isNaN(targetNum)) {
+        return Math.abs(numA - targetNum) - Math.abs(numB - targetNum);
+      }
+      return numA - numB;
+    }
+    
+    // Otherwise, use string comparison
+    return a.localeCompare(b);
+  });
   
   // If we don't have enough subsections, generate some random ones nearby
   const neededCount = 3;
-  const availableSubsections = [...otherSubsections];
+  const availableSubsections = [...sortedSubsections];
   
   // Add random nearby numbers if not enough (with safety counter to prevent infinite loop)
-  let attempts = 0;
-  const maxAttempts = 50;
-  while (availableSubsections.length < neededCount && attempts < maxAttempts) {
-    attempts++;
-    const randomOffset = Math.floor(Math.random() * 10) + 1;
-    const randomNum = targetSubsection + (Math.random() > 0.5 ? randomOffset : -randomOffset);
-    if (randomNum > 0 && !availableSubsections.includes(randomNum) && randomNum !== targetSubsection) {
-      availableSubsections.push(randomNum);
+  // Only generate if target is numeric
+  const targetNum = parseFloat(targetSubsection);
+  if (!isNaN(targetNum)) {
+    let attempts = 0;
+    const maxAttempts = 50;
+    while (availableSubsections.length < neededCount && attempts < maxAttempts) {
+      attempts++;
+      const randomOffset = Math.floor(Math.random() * 10) + 1;
+      const randomNum = targetNum + (Math.random() > 0.5 ? randomOffset : -randomOffset);
+      const randomStr = randomNum.toString();
+      if (randomNum > 0 && !availableSubsections.includes(randomStr) && randomStr !== targetSubsection) {
+        availableSubsections.push(randomStr);
+      }
     }
   }
   

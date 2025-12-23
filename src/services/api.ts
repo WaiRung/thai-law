@@ -5,7 +5,7 @@ import categoriesConfig from "../config/categories.json";
  * Complex format interfaces for API data
  */
 interface Subsection {
-  id: number;
+  id: string;
   content: string;
 }
 
@@ -255,8 +255,8 @@ function validateComplexQuestion(
       // Validate each subsection
       for (const subsection of paragraph.subsections) {
         console.log(subsection);
-        if (typeof subsection.id !== "number") {
-          throw new Error("Invalid subsection structure: id must be a number");
+        if (typeof subsection.id !== "string") {
+          throw new Error("Invalid subsection structure: id must be a string");
         }
         if (typeof subsection.content !== "string") {
           throw new Error(
