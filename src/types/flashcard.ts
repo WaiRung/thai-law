@@ -3,6 +3,7 @@ export interface Flashcard {
   question: string;
   answer: string;
   title?: string; // Optional title for whole sections from complex format
+  dataSourceIndex?: number; // Optional: Track which data source this flashcard came from (for categories with multiple data sources)
 }
 
 export interface DataSource {

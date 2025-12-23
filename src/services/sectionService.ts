@@ -299,6 +299,7 @@ export async function getCategoryDataSourceSections(
       // Create sections from merged allowed IDs
       const questionMap = new Map<string, Flashcard>();
       categoryStore.questions.forEach((q) => {
+        // When merging all data sources (no specific index), include all questions
         questionMap.set(q.id, q);
       });
 
@@ -351,9 +352,19 @@ export async function getCategoryDataSourceSections(
   }
 
   // Create a map of question IDs to flashcard data for quick lookup
+  // Filter by dataSourceIndex if this category has multiple data sources
   const questionMap = new Map<string, Flashcard>();
   categoryStore.questions.forEach((q) => {
-    questionMap.set(q.id, q);
+    // If dataSourceIndex is specified and the question has a dataSourceIndex,
+    // only include questions that match the specified dataSourceIndex
+    if (dataSourceIndex !== undefined && q.dataSourceIndex !== undefined) {
+      if (q.dataSourceIndex === dataSourceIndex) {
+        questionMap.set(q.id, q);
+      }
+    } else {
+      // If no dataSourceIndex filtering is needed, include all questions
+      questionMap.set(q.id, q);
+    }
   });
 
   // Get section content for allowed question IDs

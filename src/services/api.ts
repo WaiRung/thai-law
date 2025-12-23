@@ -23,6 +23,7 @@ interface ComplexQuestion {
   id: string;
   title: string;
   content: QuestionContent;
+  dataSourceIndex?: number; // Optional: Track which data source this question came from
 }
 
 /**
@@ -69,9 +70,10 @@ const CATEGORY_FILE_MAP: Record<string, string[]> = categoriesConfig.categories.
  * - Individual paragraph flashcards (if multiple paragraphs exist)
  * - Individual subsection flashcards
  * @param complexQuestion - Question in complex format (title + content with paragraphs)
+ * @param dataSourceIndex - Optional data source index to preserve in generated flashcards
  * @returns Array of flashcards
  */
-function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[] {
+function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIndex?: number): Flashcard[] {
   const flashcards: Flashcard[] = [];
 
   // First, create the whole section flashcard (existing behavior)
@@ -100,12 +102,16 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[]
   const answer = answerParts.join("\n");
 
   // Add the whole section flashcard with title
-  flashcards.push({
+  const wholeSection: Flashcard = {
     id: complexQuestion.id,
     question: question,
     answer: answer,
     title: complexQuestion.title, // Preserve title for display in section list
-  });
+  };
+  if (dataSourceIndex !== undefined) {
+    wholeSection.dataSourceIndex = dataSourceIndex;
+  }
+  flashcards.push(wholeSection);
 
   // Extract section number from complexQuestion.id (e.g., "มาตรา 1" -> "1")
   const sectionNumber = complexQuestion.id.replace("มาตรา ", "");
@@ -134,11 +140,15 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[]
       const paragraphAnswer = paragraphAnswerParts.join("\n");
       
       // Add the paragraph flashcard
-      flashcards.push({
+      const paragraphCard: Flashcard = {
         id: paragraphId,
         question: paragraphQuestion,
         answer: paragraphAnswer,
-      });
+      };
+      if (dataSourceIndex !== undefined) {
+        paragraphCard.dataSourceIndex = dataSourceIndex;
+      }
+      flashcards.push(paragraphCard);
     }
   }
 
@@ -171,11 +181,15 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion): Flashcard[]
         const subsectionAnswer = subsectionAnswerParts.join("\n");
         
         // Add the subsection flashcard
-        flashcards.push({
+        const subsectionCard: Flashcard = {
           id: subsectionId,
           question: subsectionQuestion,
           answer: subsectionAnswer,
-        });
+        };
+        if (dataSourceIndex !== undefined) {
+          subsectionCard.dataSourceIndex = dataSourceIndex;
+        }
+        flashcards.push(subsectionCard);
       }
     }
   }
@@ -310,7 +324,9 @@ function validateCategory(category: any): asserts category is CategoryStore {
       // Validate complex format
       validateComplexQuestion(question);
       // Map complex format to simple format (now returns array)
-      const simpleQuestions = mapComplexToSimpleFormat(question);
+      // Preserve dataSourceIndex if it exists
+      const dataSourceIndex = question.dataSourceIndex;
+      const simpleQuestions = mapComplexToSimpleFormat(question, dataSourceIndex);
       transformedQuestions.push(...simpleQuestions);
     } else {
       // Already in simple format, just validate
@@ -376,7 +392,8 @@ export async function fetchCategoryById(
   // Fetch all API files and merge questions
   const allQuestions: any[] = [];
   
-  for (const filename of filenames) {
+  for (let dataSourceIndex = 0; dataSourceIndex < filenames.length; dataSourceIndex++) {
+    const filename = filenames[dataSourceIndex];
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
@@ -402,7 +419,12 @@ export async function fetchCategoryById(
       const questions = data[categoryName];
       
       if (Array.isArray(questions)) {
-        allQuestions.push(...questions);
+        // Tag each question with its data source index if this category has multiple data sources
+        const hasMultipleDataSources = filenames.length > 1;
+        const questionsWithDataSourceIndex = hasMultipleDataSources 
+          ? questions.map(q => ({ ...q, dataSourceIndex }))
+          : questions;
+        allQuestions.push(...questionsWithDataSourceIndex);
       }
     } catch (error) {
       clearTimeout(timeoutId);
