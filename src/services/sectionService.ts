@@ -188,7 +188,7 @@ export async function getAllSections(
 
       categorySections.push({
         categoryId: filter.categoryId,
-        categoryName: filter.categoryId,
+        categoryName: categoryStore.nameTh,
         sections: sectionsWithContent,
       });
     }
