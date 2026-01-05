@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
@@ -8,6 +9,14 @@ const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 export default defineConfig({
   plugins: [
     vue(),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
+          dest: ''
+        }
+      ]
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon.svg'],
