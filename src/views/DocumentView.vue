@@ -59,6 +59,15 @@
                 </div>
             </div>
         </div>
+        
+        <PdfViewer
+            :is-open="isPdfViewerOpen"
+            :pdf-url="selectedPdfUrl"
+            :title="selectedPdfTitle"
+            :subtitle="selectedPdfSubtitle"
+            :filename="selectedPdfFilename"
+            @close="closePdfViewer"
+        />
     </main>
 </template>
 
@@ -67,9 +76,17 @@ import { ref, onMounted } from "vue";
 import documentsConfig from "../config/documents.json";
 import { getCachedDocument } from "../services/documentService";
 import type { DocumentFile, DocumentCategory } from "../types/document";
+import PdfViewer from "../components/PdfViewer.vue";
 
 const documentCategories = ref<DocumentCategory[]>([]);
 const baseUrl = documentsConfig.baseUrl;
+
+// PDF viewer state
+const isPdfViewerOpen = ref(false);
+const selectedPdfUrl = ref("");
+const selectedPdfTitle = ref("");
+const selectedPdfSubtitle = ref("");
+const selectedPdfFilename = ref("");
 
 /**
  * Get the full URL for a document
@@ -87,20 +104,35 @@ const getDocumentUrl = async (categoryId: string, categoryPath: string, filename
 };
 
 /**
- * Open document in new tab/window
+ * Open document in PDF viewer
  */
 const openDocument = async (category: DocumentCategory, file: DocumentFile) => {
     try {
         const documentUrl = await getDocumentUrl(category.categoryId, category.categoryPath, file.filename);
         
-        // Open PDF in new tab
-        window.open(documentUrl, '_blank');
+        // Open PDF in viewer
+        selectedPdfUrl.value = documentUrl;
+        selectedPdfTitle.value = file.nameTh;
+        selectedPdfSubtitle.value = file.nameEn;
+        selectedPdfFilename.value = file.filename;
+        isPdfViewerOpen.value = true;
     } catch (error) {
         console.error('Error opening document:', error);
         // Note: In a production app, this should use a toast/notification component
         // For now, using alert as a simple fallback
         alert('ไม่สามารถเปิดเอกสารได้ / Cannot open document');
     }
+};
+
+/**
+ * Close PDF viewer
+ */
+const closePdfViewer = () => {
+    isPdfViewerOpen.value = false;
+    selectedPdfUrl.value = "";
+    selectedPdfTitle.value = "";
+    selectedPdfSubtitle.value = "";
+    selectedPdfFilename.value = "";
 };
 
 /**
