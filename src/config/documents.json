@@ -13,7 +13,13 @@
       "categoryPath": "financial_institution_law",
       "nameTh": "กฎหมายสถาบันการเงิน",
       "nameEn": "Financial Institution Law",
-      "files": []
+      "files": [
+        {
+          "filename": "ความหมายงบประมาณแผ่นดิน.pdf",
+          "nameTh": "ความหมายงบประมาณแผ่นดิน",
+          "nameEn": "Meaning of National Budget"
+        }
+      ]
     },
     {
       "categoryId": "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า",
