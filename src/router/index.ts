@@ -11,6 +11,7 @@ import QuizLawCategoryView from '../views/QuizLawCategoryView.vue'
 import QuizLawView from '../views/QuizLawView.vue'
 import QuizLawDataSourceView from '../views/QuizLawDataSourceView.vue'
 import DiagramView from '../views/DiagramView.vue'
+import DocumentView from '../views/DocumentView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -73,6 +74,11 @@ const routes: RouteRecordRaw[] = [
     path: '/diagrams',
     name: 'diagrams',
     component: DiagramView,
+  },
+  {
+    path: '/documents',
+    name: 'documents',
+    component: DocumentView,
   },
 ]
 

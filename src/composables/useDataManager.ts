@@ -10,6 +10,7 @@ import {
 } from '../services/cache';
 import { fetchAllDescriptions } from '../services/descriptionService';
 import { downloadDiagramImages, saveDiagramCache } from '../services/diagramService';
+import { downloadDocuments, saveDocumentCache } from '../services/documentService';
 import { getCategorySections } from '../services/sectionService';
 import type { CategoryStore, CacheMetadata } from '../types/flashcard';
 
@@ -90,6 +91,17 @@ export function useDataManager() {
       } catch (diagramError) {
         console.warn('Failed to download diagram images, continuing without them:', diagramError);
         // Don't fail the entire download if diagram images fail
+      }
+
+      // Download and cache documents
+      try {
+        console.log('Downloading documents...');
+        const documentCache = await downloadDocuments();
+        await saveDocumentCache(documentCache);
+        console.log('Documents cached successfully');
+      } catch (documentError) {
+        console.warn('Failed to download documents, continuing without them:', documentError);
+        // Don't fail the entire download if documents fail
       }
 
       // Update cache metadata
