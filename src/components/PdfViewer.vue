@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, shallowRef, watch, onMounted, onUnmounted } from "vue";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Set up PDF.js worker
@@ -154,7 +154,7 @@ const emit = defineEmits<{
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);
-const pdfDocument = ref<any>(null);
+const pdfDocument = shallowRef<any>(null);
 const currentPage = ref(1);
 const totalPages = ref(0);
 const zoomLevel = ref(1.0);
