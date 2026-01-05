@@ -115,10 +115,16 @@ function calculateCacheSize(cache: DocumentCache[]): number {
     for (const file of category.files) {
       if (file.data) {
         // Base64 strings have a "data:application/xxx;base64," prefix followed by the encoded data
-        // Remove prefix to get just the Base64 data
-        const base64Data = file.data.split(',')[1] || file.data;
-        // Calculate original binary size: multiply by 3/4 to reverse Base64 encoding (4/3 increase)
-        totalSize += Math.floor(base64Data.length * 3 / 4);
+        // Split by comma and get the second part (or empty string if no comma found)
+        const parts = file.data.split(',');
+        const base64Data = parts.length > 1 ? parts[1] : '';
+        
+        if (base64Data) {
+          // Calculate original binary size accounting for padding characters
+          // Remove padding ('=') and calculate: ceil(length * 3 / 4)
+          const dataWithoutPadding = base64Data.replace(/=/g, '');
+          totalSize += Math.ceil(dataWithoutPadding.length * 3 / 4);
+        }
       }
     }
   }

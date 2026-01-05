@@ -97,6 +97,8 @@ const openDocument = async (category: DocumentCategory, file: DocumentFile) => {
         window.open(documentUrl, '_blank');
     } catch (error) {
         console.error('Error opening document:', error);
+        // Note: In a production app, this should use a toast/notification component
+        // For now, using alert as a simple fallback
         alert('ไม่สามารถเปิดเอกสารได้ / Cannot open document');
     }
 };
