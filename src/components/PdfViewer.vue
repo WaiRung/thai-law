@@ -137,13 +137,7 @@ import { ref, watch, onMounted, onUnmounted } from "vue";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Set up PDF.js worker
-// In production, the worker will be at /thai-law/pdf.worker.min.mjs
-// In development, we reference it directly
-if (import.meta.env.DEV) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `${import.meta.env.BASE_URL}pdf.worker.min.mjs`;
-} else {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `${import.meta.env.BASE_URL}pdf.worker.min.mjs`;
-}
+pdfjsLib.GlobalWorkerOptions.workerSrc = `${import.meta.env.BASE_URL}pdf.worker.min.mjs`;
 
 interface Props {
   isOpen: boolean;
