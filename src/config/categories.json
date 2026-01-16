@@ -56,6 +56,29 @@
       "questions": []
     },
     {
+      "id": "กฎหมายปกครอง",
+      "nameTh": "กฎหมายปกครอง",
+      "nameEn": "Administrative Law",
+      "path": "administrative_law",
+      "icon": "🏛️",
+      "dataSources": [
+        {
+          "apiFilename": "establishment_of_administrative_courts_and_administrative_court_procedure_act",
+          "filterFilename": "administrative_law/establishment_of_administrative_courts_and_administrative_court_procedure_act.json",
+          "descriptionApiPath": "establishment_of_administrative_courts_and_administrative_court_procedure_act",
+          "nameTh": "พระราชบัญญัติการจัดตั้งศาลปกครองและวิธีพิจารณาคดีปกครอง",
+          "nameEn": "Establishment of Administrative Courts and Administrative Court Procedure Act"
+        },
+        {
+          "apiFilename": "administrative_procedure_act",
+          "filterFilename": "administrative_law/administrative_procedure_act.json",
+          "descriptionApiPath": "administrative_procedure_act",
+          "nameTh": "พระราชบัญญัติวิธีปฏิบัติราชการทางปกครอง",
+          "nameEn": "Administrative Procedure Act"
+        }
+      ]
+    },
+    {
       "id": "กฎหมายสถาบันการเงิน",
       "nameTh": "กฎหมายสถาบันการเงิน",
       "nameEn": "Financial Institution Law",
