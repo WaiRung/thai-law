@@ -60,20 +60,6 @@ export default defineConfig({
                 statuses: [0, 200]
               }
             }
-          },
-          {
-            urlPattern: /^https:\/\/raw\.githubusercontent\.com\/.*\.pdf$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'pdf-documents-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: ONE_YEAR_IN_SECONDS
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
           }
         ]
       }
