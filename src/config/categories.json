@@ -1,28 +1,6 @@
 {
   "categories": [
     {
-      "id": "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า",
-      "nameTh": "ยืม ฝากทรัพย์ เก็บของในคลังสินค้า",
-      "nameEn": "Loan, Deposit and Warehousing",
-      "path": "loan_deposit_warehousing",
-      "icon": "⚖️",
-      "apiFilename": "civil_and_commercial_code",
-      "filterFilename": "civil/loan.json",
-      "descriptionApiPath": "civil_and_commercial_code",
-      "questions": []
-    },
-    {
-      "id": "กฎหมายอาญา 2",
-      "nameTh": "กฎหมายอาญา 2",
-      "nameEn": "Criminal Code 2",
-      "path": "criminal_code_2",
-      "icon": "⚖️",
-      "apiFilename": "criminal_code",
-      "filterFilename": "criminal/criminal_2.json",
-      "descriptionApiPath": "criminal_code",
-      "questions": []
-    },
-    {
       "id": "กฎหมายมรดก",
       "nameTh": "กฎหมายมรดก",
       "nameEn": "Succession Law",
