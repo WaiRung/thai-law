@@ -99,8 +99,9 @@ const getDocumentUrl = async (categoryId: string, categoryPath: string, filename
         return cachedDocument;
     }
     
-    // Fall back to remote URL
-    return `${baseUrl}/${categoryPath}/${filename}`;
+    // Fall back to remote URL (encode filename for Thai characters and special characters)
+    const encodedFilename = encodeURIComponent(filename);
+    return `${baseUrl}/${categoryPath}/${encodedFilename}`;
 };
 
 /**

@@ -76,7 +76,9 @@ export async function downloadDocuments(): Promise<DocumentCache[]> {
     
     // Download each document in the category
     for (const file of category.files) {
-      const fileUrl = `${baseUrl}/${category.categoryPath}/${file.filename}`;
+      // URL-encode the filename to handle Thai characters and special characters
+      const encodedFilename = encodeURIComponent(file.filename);
+      const fileUrl = `${baseUrl}/${category.categoryPath}/${encodedFilename}`;
       
       try {
         console.log(`Downloading document: ${file.nameTh} (${file.filename})`);
