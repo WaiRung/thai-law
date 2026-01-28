@@ -173,7 +173,21 @@ const loadPdf = async () => {
   error.value = null;
   
   try {
-    const loadingTask = pdfjsLib.getDocument(props.pdfUrl);
+    let documentSource: any = props.pdfUrl;
+    
+    // If it's a base64 data URL (from offline cache), convert to Uint8Array
+    // PDF.js handles Uint8Array more reliably for offline viewing
+    if (props.pdfUrl.startsWith('data:application/pdf;base64,')) {
+      const base64Data = props.pdfUrl.split(',')[1];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      documentSource = bytes;
+    }
+    
+    const loadingTask = pdfjsLib.getDocument(documentSource);
     pdfDocument.value = await loadingTask.promise;
     totalPages.value = pdfDocument.value.numPages;
     currentPage.value = 1;
