@@ -317,6 +317,8 @@ const handleTouchMove = (event: TouchEvent) => {
 };
 
 const handleTouchEnd = () => {
+  if (isTransitioning.value) return; // Prevent rapid swipes
+  
   const swipeThreshold = 50; // minimum swipe distance in pixels
   const deltaY = touchStartY.value - touchEndY.value;
   
@@ -336,6 +338,12 @@ const handleTouchEnd = () => {
 
 // Wheel event handler for scrolling
 const handleWheel = (event: WheelEvent) => {
+  // Allow normal scrolling when zoomed in
+  if (zoomLevel.value > 1.0) return;
+  
+  // Prevent rapid page changes
+  if (isTransitioning.value) return;
+  
   // Prevent default scrolling
   event.preventDefault();
   
@@ -354,7 +362,7 @@ const handleWheel = (event: WheelEvent) => {
 
 // Keyboard navigation for arrow keys
 const handleKeyNavigation = (event: KeyboardEvent) => {
-  if (!props.isOpen) return;
+  if (!props.isOpen || isTransitioning.value) return;
   
   switch(event.key) {
     case "ArrowDown":
@@ -380,7 +388,7 @@ watch(
       if (pdfContainerRef.value) {
         pdfContainerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
         pdfContainerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
-        pdfContainerRef.value.addEventListener("touchend", handleTouchEnd);
+        pdfContainerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
         pdfContainerRef.value.addEventListener("wheel", handleWheel, { passive: false });
       }
     } else {
@@ -593,11 +601,7 @@ onUnmounted(() => {
   justify-content: center;
   overflow: auto;
   touch-action: pan-y; /* Allow vertical panning for touch devices */
-  cursor: grab;
-}
-
-.pdf-container:active {
-  cursor: grabbing;
+  cursor: default;
 }
 
 .pdf-canvas {
