@@ -310,17 +310,17 @@ const handleEscKey = (event: KeyboardEvent) => {
 // Touch event handlers for vertical swipe
 const handleTouchStart = (event: TouchEvent) => {
   touchStartY.value = event.touches[0].clientY;
-  // Allow normal scrolling when zoomed in
+  // Prevent native scrolling when not zoomed in to enable custom swipe navigation
   if (zoomLevel.value <= 1.0) {
-    event.preventDefault(); // Prevent native scrolling
+    event.preventDefault();
   }
 };
 
 const handleTouchMove = (event: TouchEvent) => {
   touchEndY.value = event.touches[0].clientY;
-  // Allow normal scrolling when zoomed in
+  // Prevent native scrolling when not zoomed in to enable custom swipe navigation
   if (zoomLevel.value <= 1.0) {
-    event.preventDefault(); // Prevent native scrolling
+    event.preventDefault();
   }
 };
 
