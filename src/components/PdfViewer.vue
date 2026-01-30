@@ -30,7 +30,7 @@
               </div>
               
               <div v-else class="pdf-container" ref="pdfContainerRef">
-                <canvas ref="canvasRef" class="pdf-canvas"></canvas>
+                <canvas ref="canvasRef" class="pdf-canvas" :class="{ transitioning: isTransitioning }"></canvas>
               </div>
             </div>
             
@@ -162,6 +162,11 @@ const canvasRef = ref<HTMLCanvasElement | null>(null);
 const pdfContainerRef = ref<HTMLDivElement | null>(null);
 const isFullscreen = ref(false);
 
+// Touch and swipe handling
+const touchStartY = ref(0);
+const touchEndY = ref(0);
+const isTransitioning = ref(false);
+
 const handleClose = () => {
   emit("close");
 };
@@ -228,16 +233,24 @@ const renderPage = async (pageNumber: number) => {
 };
 
 const previousPage = async () => {
-  if (currentPage.value > 1) {
+  if (currentPage.value > 1 && !isTransitioning.value) {
+    isTransitioning.value = true;
     currentPage.value--;
     await renderPage(currentPage.value);
+    setTimeout(() => {
+      isTransitioning.value = false;
+    }, 300);
   }
 };
 
 const nextPage = async () => {
-  if (currentPage.value < totalPages.value) {
+  if (currentPage.value < totalPages.value && !isTransitioning.value) {
+    isTransitioning.value = true;
     currentPage.value++;
     await renderPage(currentPage.value);
+    setTimeout(() => {
+      isTransitioning.value = false;
+    }, 300);
   }
 };
 
@@ -294,12 +307,90 @@ const handleEscKey = (event: KeyboardEvent) => {
   }
 };
 
+// Touch event handlers for vertical swipe
+const handleTouchStart = (event: TouchEvent) => {
+  touchStartY.value = event.touches[0].clientY;
+};
+
+const handleTouchMove = (event: TouchEvent) => {
+  touchEndY.value = event.touches[0].clientY;
+};
+
+const handleTouchEnd = () => {
+  if (isTransitioning.value) return; // Prevent rapid swipes
+  
+  const swipeThreshold = 50; // minimum swipe distance in pixels
+  const deltaY = touchStartY.value - touchEndY.value;
+  
+  if (Math.abs(deltaY) > swipeThreshold) {
+    if (deltaY > 0) {
+      // Swipe up - go to next page
+      nextPage();
+    } else {
+      // Swipe down - go to previous page
+      previousPage();
+    }
+  }
+  
+  touchStartY.value = 0;
+  touchEndY.value = 0;
+};
+
+// Wheel event handler for scrolling
+const handleWheel = (event: WheelEvent) => {
+  // Allow normal scrolling when zoomed in
+  if (zoomLevel.value > 1.0) return;
+  
+  // Prevent rapid page changes
+  if (isTransitioning.value) return;
+  
+  // Prevent default scrolling
+  event.preventDefault();
+  
+  const scrollThreshold = 50; // minimum scroll amount to change page
+  
+  if (Math.abs(event.deltaY) > scrollThreshold) {
+    if (event.deltaY > 0) {
+      // Scroll down - go to next page
+      nextPage();
+    } else {
+      // Scroll up - go to previous page
+      previousPage();
+    }
+  }
+};
+
+// Keyboard navigation for arrow keys
+const handleKeyNavigation = (event: KeyboardEvent) => {
+  if (!props.isOpen || isTransitioning.value) return;
+  
+  switch(event.key) {
+    case "ArrowDown":
+    case "PageDown":
+      event.preventDefault();
+      nextPage();
+      break;
+    case "ArrowUp":
+    case "PageUp":
+      event.preventDefault();
+      previousPage();
+      break;
+  }
+};
+
 watch(
   () => props.isOpen,
   (newValue) => {
     if (newValue) {
       loadPdf();
       document.body.style.overflow = "hidden";
+      // Add event listeners for navigation
+      if (pdfContainerRef.value) {
+        pdfContainerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
+        pdfContainerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
+        pdfContainerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
+        pdfContainerRef.value.addEventListener("wheel", handleWheel, { passive: false });
+      }
     } else {
       document.body.style.overflow = "";
       pdfDocument.value = null;
@@ -308,6 +399,13 @@ watch(
       zoomLevel.value = 1.0;
       error.value = null;
       isFullscreen.value = false;
+      // Remove event listeners
+      if (pdfContainerRef.value) {
+        pdfContainerRef.value.removeEventListener("touchstart", handleTouchStart);
+        pdfContainerRef.value.removeEventListener("touchmove", handleTouchMove);
+        pdfContainerRef.value.removeEventListener("touchend", handleTouchEnd);
+        pdfContainerRef.value.removeEventListener("wheel", handleWheel);
+      }
     }
   }
 );
@@ -323,11 +421,13 @@ watch(
 
 onMounted(() => {
   window.addEventListener("keydown", handleEscKey);
+  window.addEventListener("keydown", handleKeyNavigation);
   document.addEventListener("fullscreenchange", handleFullscreenChange);
 });
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleEscKey);
+  window.removeEventListener("keydown", handleKeyNavigation);
   document.removeEventListener("fullscreenchange", handleFullscreenChange);
   document.body.style.overflow = "";
 });
@@ -500,12 +600,19 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   overflow: auto;
+  touch-action: pan-y; /* Allow vertical panning for touch devices */
+  cursor: default;
 }
 
 .pdf-canvas {
   max-width: 100%;
   height: auto;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease-in-out;
+}
+
+.pdf-canvas.transitioning {
+  opacity: 0.7;
 }
 
 .modal-footer {
