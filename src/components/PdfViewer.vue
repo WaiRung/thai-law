@@ -337,7 +337,7 @@ const handleTouchMove = (event: TouchEvent) => {
   }
 };
 
-const handleTouchEnd = () => {
+const handleTouchEnd = (_event: TouchEvent) => {
   // Allow normal scrolling when zoomed in
   if (zoomLevel.value > 1.0) return;
   
@@ -406,9 +406,10 @@ watch(
   () => props.isOpen,
   async (newValue) => {
     if (newValue) {
-      loadPdf();
       document.body.style.overflow = "hidden";
-      // Wait for DOM to be fully updated before adding event listeners
+      // Load the PDF first
+      await loadPdf();
+      // Wait for DOM to be fully updated after loading completes
       await nextTick();
       // Add event listeners for navigation with capture phase to intercept events early
       if (pdfContainerRef.value) {
@@ -428,9 +429,9 @@ watch(
       isFullscreen.value = false;
       // Remove event listeners with same options
       if (pdfContainerRef.value) {
-        pdfContainerRef.value.removeEventListener("touchstart", handleTouchStart, { capture: true } as any);
-        pdfContainerRef.value.removeEventListener("touchmove", handleTouchMove, { capture: true } as any);
-        pdfContainerRef.value.removeEventListener("touchend", handleTouchEnd, { capture: true } as any);
+        pdfContainerRef.value.removeEventListener("touchstart", handleTouchStart, { capture: true });
+        pdfContainerRef.value.removeEventListener("touchmove", handleTouchMove, { capture: true });
+        pdfContainerRef.value.removeEventListener("touchend", handleTouchEnd, { capture: true });
         pdfContainerRef.value.removeEventListener("wheel", handleWheel);
       }
     }
