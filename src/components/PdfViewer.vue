@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef, watch, onMounted, onUnmounted } from "vue";
+import { ref, shallowRef, watch, onMounted, onUnmounted, nextTick } from "vue";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Set up PDF.js worker
@@ -258,6 +258,7 @@ const zoomIn = async () => {
   if (zoomLevel.value < 3.0) {
     zoomLevel.value = Math.min(3.0, zoomLevel.value + 0.25);
     await renderPage(currentPage.value);
+    updateTouchAction();
   }
 };
 
@@ -265,6 +266,18 @@ const zoomOut = async () => {
   if (zoomLevel.value > 0.5) {
     zoomLevel.value = Math.max(0.5, zoomLevel.value - 0.25);
     await renderPage(currentPage.value);
+    updateTouchAction();
+  }
+};
+
+const updateTouchAction = () => {
+  if (pdfContainerRef.value) {
+    // When zoomed in, allow native pan gestures; when not zoomed, disable for custom swipe
+    if (zoomLevel.value > 1.0) {
+      pdfContainerRef.value.style.touchAction = 'auto';
+    } else {
+      pdfContainerRef.value.style.touchAction = 'none';
+    }
   }
 };
 
@@ -324,7 +337,7 @@ const handleTouchMove = (event: TouchEvent) => {
   }
 };
 
-const handleTouchEnd = () => {
+const handleTouchEnd = (_event: TouchEvent) => {
   // Allow normal scrolling when zoomed in
   if (zoomLevel.value > 1.0) return;
   
@@ -391,16 +404,20 @@ const handleKeyNavigation = (event: KeyboardEvent) => {
 
 watch(
   () => props.isOpen,
-  (newValue) => {
+  async (newValue) => {
     if (newValue) {
-      loadPdf();
       document.body.style.overflow = "hidden";
-      // Add event listeners for navigation
+      // Load the PDF first
+      await loadPdf();
+      // Wait for DOM to be fully updated after loading completes
+      await nextTick();
+      // Add event listeners for navigation with capture phase to intercept events early
       if (pdfContainerRef.value) {
-        pdfContainerRef.value.addEventListener("touchstart", handleTouchStart, { passive: false });
-        pdfContainerRef.value.addEventListener("touchmove", handleTouchMove, { passive: false });
-        pdfContainerRef.value.addEventListener("touchend", handleTouchEnd, { passive: false });
+        pdfContainerRef.value.addEventListener("touchstart", handleTouchStart, { passive: false, capture: true });
+        pdfContainerRef.value.addEventListener("touchmove", handleTouchMove, { passive: false, capture: true });
+        pdfContainerRef.value.addEventListener("touchend", handleTouchEnd, { passive: false, capture: true });
         pdfContainerRef.value.addEventListener("wheel", handleWheel, { passive: false });
+        updateTouchAction(); // Set initial touch-action based on zoom level
       }
     } else {
       document.body.style.overflow = "";
@@ -410,11 +427,11 @@ watch(
       zoomLevel.value = 1.0;
       error.value = null;
       isFullscreen.value = false;
-      // Remove event listeners
+      // Remove event listeners with same options
       if (pdfContainerRef.value) {
-        pdfContainerRef.value.removeEventListener("touchstart", handleTouchStart);
-        pdfContainerRef.value.removeEventListener("touchmove", handleTouchMove);
-        pdfContainerRef.value.removeEventListener("touchend", handleTouchEnd);
+        pdfContainerRef.value.removeEventListener("touchstart", handleTouchStart, { capture: true });
+        pdfContainerRef.value.removeEventListener("touchmove", handleTouchMove, { capture: true });
+        pdfContainerRef.value.removeEventListener("touchend", handleTouchEnd, { capture: true });
         pdfContainerRef.value.removeEventListener("wheel", handleWheel);
       }
     }
