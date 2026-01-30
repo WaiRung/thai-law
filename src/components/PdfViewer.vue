@@ -310,15 +310,24 @@ const handleEscKey = (event: KeyboardEvent) => {
 // Touch event handlers for vertical swipe
 const handleTouchStart = (event: TouchEvent) => {
   touchStartY.value = event.touches[0].clientY;
-  event.preventDefault(); // Prevent native scrolling
+  // Allow normal scrolling when zoomed in
+  if (zoomLevel.value <= 1.0) {
+    event.preventDefault(); // Prevent native scrolling
+  }
 };
 
 const handleTouchMove = (event: TouchEvent) => {
   touchEndY.value = event.touches[0].clientY;
-  event.preventDefault(); // Prevent native scrolling
+  // Allow normal scrolling when zoomed in
+  if (zoomLevel.value <= 1.0) {
+    event.preventDefault(); // Prevent native scrolling
+  }
 };
 
 const handleTouchEnd = () => {
+  // Allow normal scrolling when zoomed in
+  if (zoomLevel.value > 1.0) return;
+  
   if (isTransitioning.value) return; // Prevent rapid swipes
   
   const swipeThreshold = 50; // minimum swipe distance in pixels
