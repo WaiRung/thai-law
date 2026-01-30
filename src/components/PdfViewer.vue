@@ -310,13 +310,24 @@ const handleEscKey = (event: KeyboardEvent) => {
 // Touch event handlers for vertical swipe
 const handleTouchStart = (event: TouchEvent) => {
   touchStartY.value = event.touches[0].clientY;
+  // Prevent native scrolling when not zoomed in to enable custom swipe navigation
+  if (zoomLevel.value <= 1.0) {
+    event.preventDefault();
+  }
 };
 
 const handleTouchMove = (event: TouchEvent) => {
   touchEndY.value = event.touches[0].clientY;
+  // Prevent native scrolling when not zoomed in to enable custom swipe navigation
+  if (zoomLevel.value <= 1.0) {
+    event.preventDefault();
+  }
 };
 
 const handleTouchEnd = () => {
+  // Allow normal scrolling when zoomed in
+  if (zoomLevel.value > 1.0) return;
+  
   if (isTransitioning.value) return; // Prevent rapid swipes
   
   const swipeThreshold = 50; // minimum swipe distance in pixels
@@ -386,9 +397,9 @@ watch(
       document.body.style.overflow = "hidden";
       // Add event listeners for navigation
       if (pdfContainerRef.value) {
-        pdfContainerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
-        pdfContainerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
-        pdfContainerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
+        pdfContainerRef.value.addEventListener("touchstart", handleTouchStart, { passive: false });
+        pdfContainerRef.value.addEventListener("touchmove", handleTouchMove, { passive: false });
+        pdfContainerRef.value.addEventListener("touchend", handleTouchEnd, { passive: false });
         pdfContainerRef.value.addEventListener("wheel", handleWheel, { passive: false });
       }
     } else {
@@ -600,7 +611,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   overflow: auto;
-  touch-action: pan-y; /* Allow vertical panning for touch devices */
+  touch-action: none; /* Disable native touch actions to enable custom swipe navigation */
   cursor: default;
 }
 
