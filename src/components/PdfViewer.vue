@@ -30,7 +30,15 @@
               </div>
               
               <div v-else class="pdf-container" ref="pdfContainerRef">
-                <canvas ref="canvasRef" class="pdf-canvas" :class="{ transitioning: isTransitioning }"></canvas>
+                <canvas 
+                  ref="canvasRef" 
+                  class="pdf-canvas" 
+                  :class="{ 
+                    'transitioning': isTransitioning,
+                    'slide-up': isTransitioning && transitionDirection === 'up',
+                    'slide-down': isTransitioning && transitionDirection === 'down'
+                  }"
+                ></canvas>
               </div>
             </div>
             
@@ -166,6 +174,7 @@ const isFullscreen = ref(false);
 const touchStartY = ref(0);
 const touchEndY = ref(0);
 const isTransitioning = ref(false);
+const transitionDirection = ref<'up' | 'down' | null>(null);
 
 const handleClose = () => {
   emit("close");
@@ -235,22 +244,26 @@ const renderPage = async (pageNumber: number) => {
 const previousPage = async () => {
   if (currentPage.value > 1 && !isTransitioning.value) {
     isTransitioning.value = true;
+    transitionDirection.value = 'down'; // Previous page slides down
     currentPage.value--;
     await renderPage(currentPage.value);
     setTimeout(() => {
       isTransitioning.value = false;
-    }, 300);
+      transitionDirection.value = null;
+    }, 400);
   }
 };
 
 const nextPage = async () => {
   if (currentPage.value < totalPages.value && !isTransitioning.value) {
     isTransitioning.value = true;
+    transitionDirection.value = 'up'; // Next page slides up
     currentPage.value++;
     await renderPage(currentPage.value);
     setTimeout(() => {
       isTransitioning.value = false;
-    }, 300);
+      transitionDirection.value = null;
+    }, 400);
   }
 };
 
@@ -636,11 +649,48 @@ onUnmounted(() => {
   max-width: 100%;
   height: auto;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  transition: opacity 0.3s ease-in-out;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Enable hardware acceleration for smooth mobile performance */
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .pdf-canvas.transitioning {
-  opacity: 0.7;
+  opacity: 0.5;
+}
+
+/* Smooth slide-up animation for next page */
+.pdf-canvas.slide-up {
+  animation: slideUpTransition 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth slide-down animation for previous page */
+.pdf-canvas.slide-down {
+  animation: slideDownTransition 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUpTransition {
+  0% {
+    transform: translate3d(0, 30px, 0);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDownTransition {
+  0% {
+    transform: translate3d(0, -30px, 0);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
 }
 
 .modal-footer {
@@ -775,6 +825,29 @@ onUnmounted(() => {
 
   .controls-group {
     gap: 0.25rem;
+  }
+
+  /* Enhanced mobile animations with slightly more pronounced movement */
+  @keyframes slideUpTransition {
+    0% {
+      transform: translate3d(0, 50px, 0);
+      opacity: 0.2;
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideDownTransition {
+    0% {
+      transform: translate3d(0, -50px, 0);
+      opacity: 0.2;
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+    }
   }
 }
 </style>

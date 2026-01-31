@@ -26,3 +26,7 @@ screenshots/
 *.njsproj
 *.sln
 *.sw?
+
+# Test files
+public/test-*.pdf
+public/test-*.html
