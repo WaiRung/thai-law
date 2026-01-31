@@ -651,7 +651,6 @@ onUnmounted(() => {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   /* Enable hardware acceleration for smooth mobile performance */
-  will-change: transform, opacity;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -659,6 +658,8 @@ onUnmounted(() => {
 
 .pdf-canvas.transitioning {
   opacity: 0.5;
+  /* Apply will-change only during transitions to optimize memory usage */
+  will-change: transform, opacity;
 }
 
 /* Smooth slide-up animation for next page */
@@ -673,8 +674,8 @@ onUnmounted(() => {
 
 @keyframes slideUpTransition {
   0% {
-    transform: translate3d(0, 30px, 0);
-    opacity: 0.3;
+    transform: translate3d(0, var(--slide-distance, 30px), 0);
+    opacity: var(--slide-start-opacity, 0.3);
   }
   100% {
     transform: translate3d(0, 0, 0);
@@ -684,8 +685,8 @@ onUnmounted(() => {
 
 @keyframes slideDownTransition {
   0% {
-    transform: translate3d(0, -30px, 0);
-    opacity: 0.3;
+    transform: translate3d(0, calc(-1 * var(--slide-distance, 30px)), 0);
+    opacity: var(--slide-start-opacity, 0.3);
   }
   100% {
     transform: translate3d(0, 0, 0);
@@ -827,27 +828,10 @@ onUnmounted(() => {
     gap: 0.25rem;
   }
 
-  /* Enhanced mobile animations with slightly more pronounced movement */
-  @keyframes slideUpTransition {
-    0% {
-      transform: translate3d(0, 50px, 0);
-      opacity: 0.2;
-    }
-    100% {
-      transform: translate3d(0, 0, 0);
-      opacity: 1;
-    }
-  }
-
-  @keyframes slideDownTransition {
-    0% {
-      transform: translate3d(0, -50px, 0);
-      opacity: 0.2;
-    }
-    100% {
-      transform: translate3d(0, 0, 0);
-      opacity: 1;
-    }
+  /* Enhanced mobile animations with CSS custom properties */
+  .pdf-canvas {
+    --slide-distance: 50px;
+    --slide-start-opacity: 0.2;
   }
 }
 </style>
