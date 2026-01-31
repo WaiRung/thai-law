@@ -244,7 +244,7 @@ const renderPage = async (pageNumber: number) => {
 const previousPage = async () => {
   if (currentPage.value > 1 && !isTransitioning.value) {
     isTransitioning.value = true;
-    transitionDirection.value = 'down'; // Previous page slides down
+    transitionDirection.value = 'down'; // Previous page slides down from top
     currentPage.value--;
     await renderPage(currentPage.value);
     setTimeout(() => {
@@ -257,7 +257,7 @@ const previousPage = async () => {
 const nextPage = async () => {
   if (currentPage.value < totalPages.value && !isTransitioning.value) {
     isTransitioning.value = true;
-    transitionDirection.value = 'up'; // Next page slides up
+    transitionDirection.value = 'up'; // Next page slides up from bottom
     currentPage.value++;
     await renderPage(currentPage.value);
     setTimeout(() => {
