@@ -84,6 +84,13 @@
           "descriptionApiPath": "treasury_reserves_act",
           "nameTh": "พระราชบัญญัติเงินคงคลัง",
           "nameEn": "Treasury Reserves Act"
+        },
+        {
+          "apiFilename": "public_debt_management_act",
+          "filterFilename": "public_debt_management_act/finance.json",
+          "descriptionApiPath": "public_debt_management_act",
+          "nameTh": "พระราชบัญญัติการบริหารหนี้สาธารณะ",
+          "nameEn": "Public Debt Management Act"
         }
       ],
       "questions": []
