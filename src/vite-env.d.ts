@@ -43,3 +43,15 @@ declare module '../config/categories.json' {
   const config: CategoriesConfig;
   export default config;
 }
+
+// Vite environment variable typings
+interface ImportMetaEnv {
+  readonly VITE_API_BASE_URL?: string;
+  readonly MODE: string;
+  readonly DEV: boolean;
+  readonly PROD: boolean;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

@@ -7,6 +7,7 @@ import categoriesConfig from "../config/categories.json";
 interface Subsection {
   id: string;
   content: string;
+  subsections?: Subsection[] | null; // Recursive: subsections can contain nested subsections
 }
 
 interface Paragraph {
@@ -33,6 +34,105 @@ const API_CONFIG = {
   baseUrl: import.meta.env.VITE_API_BASE_URL || "",
   timeout: 10000, // 10 seconds
 };
+
+/**
+ * Recursively format subsections with proper indentation
+ * @param subsections - Array of subsections to format
+ * @param indentLevel - Current indentation level (0-based)
+ * @returns Array of formatted strings
+ */
+function formatSubsectionsRecursive(subsections: Subsection[], indentLevel: number = 0): string[] {
+  const lines: string[] = [];
+  const indent = '  '.repeat(indentLevel + 1); // +1 because base subsections start with 2 spaces
+  
+  for (const subsection of subsections) {
+    lines.push('');
+    lines.push(`${indent}(${subsection.id}) ${subsection.content}`);
+    
+    // Recursively process nested subsections if they exist
+    if (subsection.subsections && subsection.subsections.length > 0) {
+      const nestedLines = formatSubsectionsRecursive(subsection.subsections, indentLevel + 1);
+      lines.push(...nestedLines);
+    }
+  }
+  
+  return lines;
+}
+
+/**
+ * Recursively collect all subsections and their nested subsections
+ * @param subsections - Array of subsections to collect
+ * @param sectionId - Section ID (e.g., "มาตรา 1")
+ * @param sectionNumber - Section number string (e.g., "1")
+ * @param paragraphId - Paragraph ID (optional, for multi-paragraph sections)
+ * @param hasMultipleParagraphs - Whether section has multiple paragraphs
+ * @param dataSourceIndex - Optional data source index
+ * @returns Array of flashcards for all subsections and their nested subsections
+ */
+function generateSubsectionFlashcardsRecursive(
+  subsections: Subsection[],
+  sectionId: string,
+  sectionNumber: string,
+  paragraphId: number | null,
+  hasMultipleParagraphs: boolean,
+  dataSourceIndex?: number
+): Flashcard[] {
+  const flashcards: Flashcard[] = [];
+  
+  for (const subsection of subsections) {
+    // Build subsection ID based on whether we have a parent subsection
+    let subsectionId: string;
+    let subsectionQuestion: string;
+    
+    if (hasMultipleParagraphs && paragraphId !== null) {
+      subsectionId = `${sectionId} วรรค ${paragraphId} อนุ ${subsection.id}`;
+      subsectionQuestion = `มาตรา ${sectionNumber} วรรค ${paragraphId} อนุ ${subsection.id}`;
+    } else {
+      subsectionId = `${sectionId} อนุ ${subsection.id}`;
+      subsectionQuestion = `มาตรา ${sectionNumber} อนุ ${subsection.id}`;
+    }
+    
+    // Build the subsection answer
+    const subsectionAnswerParts: string[] = [];
+    subsectionAnswerParts.push(subsectionId);
+    subsectionAnswerParts.push('');
+    subsectionAnswerParts.push(subsection.content);
+    
+    // Add nested subsections to the answer if they exist
+    if (subsection.subsections && subsection.subsections.length > 0) {
+      const nestedLines = formatSubsectionsRecursive(subsection.subsections, 0);
+      subsectionAnswerParts.push(...nestedLines);
+    }
+    
+    const subsectionAnswer = subsectionAnswerParts.join('\n');
+    
+    // Add the subsection flashcard
+    const subsectionCard: Flashcard = {
+      id: subsectionId,
+      question: subsectionQuestion,
+      answer: subsectionAnswer,
+    };
+    if (dataSourceIndex !== undefined) {
+      subsectionCard.dataSourceIndex = dataSourceIndex;
+    }
+    flashcards.push(subsectionCard);
+    
+    // Recursively process nested subsections
+    if (subsection.subsections && subsection.subsections.length > 0) {
+      const nestedFlashcards = generateSubsectionFlashcardsRecursive(
+        subsection.subsections,
+        sectionId,
+        sectionNumber,
+        paragraphId,
+        hasMultipleParagraphs,
+        dataSourceIndex
+      );
+      flashcards.push(...nestedFlashcards);
+    }
+  }
+  
+  return flashcards;
+}
 
 /**
  * Category ID to filename(s) mapping
@@ -90,12 +190,10 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIn
       answerParts.push(` ${paragraph.content}`);
     }
 
-    // Add subsections if they exist
+    // Add subsections if they exist (using recursive formatting)
     if (paragraph.subsections && paragraph.subsections.length > 0) {
-      for (const subsection of paragraph.subsections) {
-        answerParts.push("");
-        answerParts.push(`  (${subsection.id}) ${subsection.content}`);
-      }
+      const subsectionLines = formatSubsectionsRecursive(paragraph.subsections, 0);
+      answerParts.push(...subsectionLines);
     }
   }
 
@@ -129,12 +227,10 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIn
       paragraphAnswerParts.push("");
       paragraphAnswerParts.push(paragraph.content);
       
-      // Add subsections if they exist
+      // Add subsections if they exist (using recursive formatting)
       if (paragraph.subsections && paragraph.subsections.length > 0) {
-        for (const subsection of paragraph.subsections) {
-          paragraphAnswerParts.push("");
-          paragraphAnswerParts.push(`  (${subsection.id}) ${subsection.content}`);
-        }
+        const subsectionLines = formatSubsectionsRecursive(paragraph.subsections, 0);
+        paragraphAnswerParts.push(...subsectionLines);
       }
       
       const paragraphAnswer = paragraphAnswerParts.join("\n");
@@ -152,45 +248,19 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIn
     }
   }
 
-  // Now create individual flashcards for each subsection
+  // Now create individual flashcards for each subsection (including nested subsections)
   for (const paragraph of complexQuestion.content.paragraphs) {
     if (paragraph.subsections && paragraph.subsections.length > 0) {
-      for (const subsection of paragraph.subsections) {
-        // Create subsection ID and question
-        // If there are multiple paragraphs, include paragraph number in ID
-        // If paragraph not specified but subsection exists, default to paragraph 1
-        let subsectionId: string;
-        let subsectionQuestion: string;
-        
-        if (complexQuestion.content.paragraphs.length > 1) {
-          // Multiple paragraphs: include paragraph number
-          subsectionId = `${complexQuestion.id} วรรค ${paragraph.id} อนุ ${subsection.id}`;
-          subsectionQuestion = `มาตรา ${sectionNumber} วรรค ${paragraph.id} อนุ ${subsection.id}`;
-        } else {
-          // Single paragraph: use implicit paragraph 1 format
-          subsectionId = `${complexQuestion.id} อนุ ${subsection.id}`;
-          subsectionQuestion = `มาตรา ${sectionNumber} อนุ ${subsection.id}`;
-        }
-        
-        // Build the subsection answer
-        const subsectionAnswerParts: string[] = [];
-        subsectionAnswerParts.push(subsectionId);
-        subsectionAnswerParts.push("");
-        subsectionAnswerParts.push(subsection.content);
-        
-        const subsectionAnswer = subsectionAnswerParts.join("\n");
-        
-        // Add the subsection flashcard
-        const subsectionCard: Flashcard = {
-          id: subsectionId,
-          question: subsectionQuestion,
-          answer: subsectionAnswer,
-        };
-        if (dataSourceIndex !== undefined) {
-          subsectionCard.dataSourceIndex = dataSourceIndex;
-        }
-        flashcards.push(subsectionCard);
-      }
+      const hasMultipleParagraphs = complexQuestion.content.paragraphs.length > 1;
+      const subsectionFlashcards = generateSubsectionFlashcardsRecursive(
+        paragraph.subsections,
+        complexQuestion.id,
+        sectionNumber,
+        hasMultipleParagraphs ? paragraph.id : null,
+        hasMultipleParagraphs,
+        dataSourceIndex
+      );
+      flashcards.push(...subsectionFlashcards);
     }
   }
 
