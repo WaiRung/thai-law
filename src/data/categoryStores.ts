@@ -4,9 +4,15 @@ import categoriesConfig from "../config/categories.json";
 /**
  * Complex format interfaces for static data transformation
  */
+interface Sub {
+  id: string;
+  content: string;
+}
+
 interface Subsection {
   id: string;
   content: string;
+  subs?: Sub[] | null;
 }
 
 interface Paragraph {
@@ -52,6 +58,13 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIn
       for (const subsection of paragraph.subsections) {
         answerParts.push("");
         answerParts.push(`  (${subsection.id}) ${subsection.content}`);
+
+        // Add subs if they exist
+        if (subsection.subs && subsection.subs.length > 0) {
+          for (const sub of subsection.subs) {
+            answerParts.push(`    (${sub.id}) ${sub.content}`);
+          }
+        }
       }
     }
   }
@@ -91,6 +104,13 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIn
         for (const subsection of paragraph.subsections) {
           paragraphAnswerParts.push("");
           paragraphAnswerParts.push(`  (${subsection.id}) ${subsection.content}`);
+
+          // Add subs if they exist
+          if (subsection.subs && subsection.subs.length > 0) {
+            for (const sub of subsection.subs) {
+              paragraphAnswerParts.push(`    (${sub.id}) ${sub.content}`);
+            }
+          }
         }
       }
       
@@ -132,6 +152,14 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIn
         subsectionAnswerParts.push(subsectionId);
         subsectionAnswerParts.push("");
         subsectionAnswerParts.push(subsection.content);
+        
+        // Add subs if they exist
+        if (subsection.subs && subsection.subs.length > 0) {
+          for (const sub of subsection.subs) {
+            subsectionAnswerParts.push("");
+            subsectionAnswerParts.push(`    (${sub.id}) ${sub.content}`);
+          }
+        }
         
         const subsectionAnswer = subsectionAnswerParts.join("\n");
         

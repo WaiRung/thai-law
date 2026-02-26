@@ -137,7 +137,8 @@ const cleanAnswerForDisplay = (answer: string, section: SectionContent): string 
         }
 
         // Handle subsection IDs based on section type
-        const subsectionMatch = line.match(/^(\s*)\((\d+)\)\s+(.+)$/);
+        // Only match subsection-level lines (up to 3 spaces indent), not sub-subsection lines (4+ spaces)
+        const subsectionMatch = line.match(/^(\s{0,3})\((\d+)\)\s+(.+)$/);
         if (subsectionMatch) {
             const [, spaces, id, content] = subsectionMatch;
 
