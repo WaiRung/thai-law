@@ -77,8 +77,16 @@
           "descriptionApiPath": "rule_of_the_general_assembly_of_judges_of_the_supreme_administrative_court_on_administrative_court_procedure",
           "nameTh": "กฎของที่ประชุมใหญ่ตุลาการศาลปกครองสูงสุดว่าด้วยวิธีพิจารณาคดีปกครอง",
           "nameEn": "Rule of the General Assembly of Judges of the Supreme Administrative Court on Administrative Court Procedure"
+        },
+        {
+          "apiFilename": "civil_service_act",
+          "filterFilename": "public_law_procedure/civil_service_act.json",
+          "descriptionApiPath": "civil_service_act",
+          "nameTh": "พระราชบัญญัติระเบียบข้าราชการพลเรือน",
+          "nameEn": "Civil Service Act"
         }
-      ]
+      ],
+      "questions": []
     },
     {
       "id": "กฎหมายสถาบันการเงิน",
