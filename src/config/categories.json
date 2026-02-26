@@ -42,14 +42,14 @@
       "dataSources": [
         {
           "apiFilename": "establishment_of_administrative_courts_and_administrative_court_procedure_act",
-          "filterFilename": "administrative_law/establishment_of_administrative_courts_and_administrative_court_procedure_act.json",
+          "filterFilename": "establishment_of_administrative_courts_and_administrative_court_procedure_act/administrative_law.json",
           "descriptionApiPath": "establishment_of_administrative_courts_and_administrative_court_procedure_act",
           "nameTh": "พระราชบัญญัติการจัดตั้งศาลปกครองและวิธีพิจารณาคดีปกครอง",
           "nameEn": "Establishment of Administrative Courts and Administrative Court Procedure Act"
         },
         {
           "apiFilename": "administrative_procedure_act",
-          "filterFilename": "administrative_law/administrative_procedure_act.json",
+          "filterFilename": "administrative_procedure_act/administrative_law.json",
           "descriptionApiPath": "administrative_procedure_act",
           "nameTh": "พระราชบัญญัติวิธีปฏิบัติราชการทางปกครอง",
           "nameEn": "Administrative Procedure Act"
@@ -66,21 +66,21 @@
       "dataSources": [
         {
           "apiFilename": "establishment_of_administrative_courts_and_administrative_court_procedure_act",
-          "filterFilename": "public_law_procedure/establishment_of_administrative_courts_and_administrative_court_procedure_act.json",
+          "filterFilename": "establishment_of_administrative_courts_and_administrative_court_procedure_act/public_law_procedure.json",
           "descriptionApiPath": "establishment_of_administrative_courts_and_administrative_court_procedure_act",
           "nameTh": "พระราชบัญญัติการจัดตั้งศาลปกครองและวิธีพิจารณาคดีปกครอง",
           "nameEn": "Establishment of Administrative Courts and Administrative Court Procedure Act"
         },
         {
           "apiFilename": "rule_of_the_general_assembly_of_judges_of_the_supreme_administrative_court_on_administrative_court_procedure",
-          "filterFilename": "public_law_procedure/rule_of_the_general_assembly_of_judges_of_the_supreme_administrative_court_on_administrative_court_procedure.json",
+          "filterFilename": "rule_of_the_general_assembly_of_judges_of_the_supreme_administrative_court_on_administrative_court_procedure/public_law_procedure.json",
           "descriptionApiPath": "rule_of_the_general_assembly_of_judges_of_the_supreme_administrative_court_on_administrative_court_procedure",
           "nameTh": "กฎของที่ประชุมใหญ่ตุลาการศาลปกครองสูงสุดว่าด้วยวิธีพิจารณาคดีปกครอง",
           "nameEn": "Rule of the General Assembly of Judges of the Supreme Administrative Court on Administrative Court Procedure"
         },
         {
           "apiFilename": "civil_service_act",
-          "filterFilename": "public_law_procedure/civil_service_act.json",
+          "filterFilename": "civil_service_act/public_law_procedure.json",
           "descriptionApiPath": "civil_service_act",
           "nameTh": "พระราชบัญญัติระเบียบข้าราชการพลเรือน",
           "nameEn": "Civil Service Act"
