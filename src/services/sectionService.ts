@@ -155,9 +155,9 @@ export async function getAllSections(
       // Get section content for allowed question IDs
       const sectionsWithContent: SectionContent[] = [];
       const sortedSectionIds = [...filter.allowedQuestionIds].sort((a, b) => {
-        // Sort sections numerically by extracting the section number
+        // Sort sections numerically by extracting the section number (supports any prefix)
         const extractNumber = (str: string) => {
-          const match = str.match(/มาตรา\s+(\d+)/);
+          const match = str.match(/\S+\s+(\d+)/);
           return match ? parseInt(match[1], 10) : 0;
         };
         return extractNumber(a) - extractNumber(b);
@@ -212,9 +212,9 @@ export async function getCategorySections(
   }
 
   return [...filter.allowedQuestionIds].sort((a, b) => {
-    // Sort sections numerically by extracting the section number
+    // Sort sections numerically by extracting the section number (supports any prefix)
     const extractNumber = (str: string) => {
-      const match = str.match(/มาตรา\s+(\d+)/);
+      const match = str.match(/\S+\s+(\d+)/);
       return match ? parseInt(match[1], 10) : 0;
     };
     return extractNumber(a) - extractNumber(b);
@@ -305,8 +305,9 @@ export async function getCategoryDataSourceSections(
 
       const sectionsWithContent: SectionContent[] = [];
       const sortedSectionIds = [...new Set(allAllowedIds)].sort((a, b) => {
+        // Sort sections numerically by extracting the section number (supports any prefix)
         const extractNumber = (str: string) => {
-          const match = str.match(/มาตรา\s+(\d+)/);
+          const match = str.match(/\S+\s+(\d+)/);
           return match ? parseInt(match[1], 10) : 0;
         };
         return extractNumber(a) - extractNumber(b);
@@ -371,8 +372,9 @@ export async function getCategoryDataSourceSections(
   // Get section content for allowed question IDs
   const sectionsWithContent: SectionContent[] = [];
   const sortedSectionIds = [...filter.allowedQuestionIds].sort((a, b) => {
+    // Sort sections numerically by extracting the section number (supports any prefix)
     const extractNumber = (str: string) => {
-      const match = str.match(/มาตรา\s+(\d+)/);
+      const match = str.match(/\S+\s+(\d+)/);
       return match ? parseInt(match[1], 10) : 0;
     };
     return extractNumber(a) - extractNumber(b);

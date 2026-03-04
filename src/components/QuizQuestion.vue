@@ -71,11 +71,15 @@ const choiceLetters = ["ก", "ข", "ค", "ง"];
 const typeLabel = computed(() => {
     switch (props.question.type) {
         case "section":
-            return "มาตรา";
         case "paragraph":
-            return "วรรค";
-        case "subsection":
-            return "อนุ";
+        case "subsection": {
+            // Derive the section prefix from the question ID (e.g., "ข้อ 5" -> "ข้อ", "มาตรา 1" -> "มาตรา")
+            const prefixMatch = props.question.id.match(/^([^\s]+)\s+\d+/);
+            const sectionPrefix = prefixMatch ? prefixMatch[1] : "มาตรา";
+            if (props.question.type === "section") return sectionPrefix;
+            if (props.question.type === "paragraph") return `${sectionPrefix} ... วรรค`;
+            return `${sectionPrefix} ... อนุ`;
+        }
         default:
             return "";
     }

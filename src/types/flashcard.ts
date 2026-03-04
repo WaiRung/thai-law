@@ -12,6 +12,7 @@ export interface DataSource {
   descriptionApiPath: string;
   nameTh?: string; // Optional display name for the data source
   nameEn?: string; // Optional display name for the data source
+  sectionPrefix?: string; // Optional: Override the default "มาตรา" prefix (e.g., "ข้อ" for some sources)
 }
 
 export interface CategoryStore {

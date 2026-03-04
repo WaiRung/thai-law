@@ -3,37 +3,57 @@
  * Generates quiz questions from flashcard data
  * 
  * Quiz rules:
- * 1. Questions are content without "มาตรา", "วรรค", "อนุ"
+ * 1. Questions are content without "มาตรา"/"ข้อ", "วรรค", "อนุ"
  * 2. Answers are 4 choices:
- *    - Whole section: "มาตรา {4 nearest section numbers}"
- *    - Paragraph: "มาตรา X วรรค {other paragraph numbers}"
- *    - Subsection: "มาตรา X อนุ {1 correct + 3 random nearest numbers}"
+ *    - Whole section: "{prefix} {4 nearest section numbers}"
+ *    - Paragraph: "{prefix} X วรรค {other paragraph numbers}"
+ *    - Subsection: "{prefix} X อนุ {1 correct + 3 random nearest numbers}"
  */
 
 import type { Flashcard } from "../types/flashcard";
 import type { QuizQuestion } from "../types/quiz";
 
+/** Known section prefixes used across different data sources */
+const SECTION_PREFIXES = ["มาตรา", "ข้อ"] as const;
+
+/**
+ * Extract the section prefix from a flashcard ID.
+ * Returns "มาตรา" as the default if none of the known prefixes match.
+ */
+function extractSectionPrefix(id: string): string {
+  for (const prefix of SECTION_PREFIXES) {
+    if (id.startsWith(prefix + " ")) {
+      return prefix;
+    }
+  }
+  return "มาตรา";
+}
+
 /**
  * Parse section ID to extract section number, paragraph number, and subsection number
  * Examples:
- * - "มาตรา 123" -> { section: 123 }
- * - "มาตรา 123 วรรค 2" -> { section: 123, paragraph: 2 }
- * - "มาตรา 123 อนุ 3" -> { section: 123, subsection: 3 }
- * - "มาตรา 123 วรรค 2 อนุ 3" -> { section: 123, paragraph: 2, subsection: 3 }
+ * - "มาตรา 123" -> { prefix: "มาตรา", section: 123 }
+ * - "ข้อ 5"     -> { prefix: "ข้อ",   section: 5 }
+ * - "มาตรา 123 วรรค 2" -> { prefix: "มาตรา", section: 123, paragraph: 2 }
+ * - "มาตรา 123 อนุ 3" -> { prefix: "มาตรา", section: 123, subsection: 3 }
+ * - "มาตรา 123 วรรค 2 อนุ 3" -> { prefix: "มาตรา", section: 123, paragraph: 2, subsection: 3 }
  */
 interface ParsedId {
+  prefix: string;
   section: number;
   paragraph?: number;
   subsection?: string;
 }
 
 function parseFlashcardId(id: string): ParsedId | null {
-  // Match patterns like "มาตรา 123", "มาตรา 123 วรรค 2", etc.
-  const sectionMatch = id.match(/มาตรา\s+(\d+)/);
+  // Match patterns like "มาตรา 123", "ข้อ 5", "มาตรา 123 วรรค 2", etc.
+  const prefix = extractSectionPrefix(id);
+  const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const sectionMatch = id.match(new RegExp(`${escapedPrefix}\\s+(\\d+)`));
   if (!sectionMatch) return null;
 
   const section = parseInt(sectionMatch[1], 10);
-  const result: ParsedId = { section };
+  const result: ParsedId = { prefix, section };
 
   // Check for paragraph
   const paragraphMatch = id.match(/วรรค\s+(\d+)/);
@@ -100,19 +120,20 @@ function getParagraphChoices(
   targetParagraph: number,
   targetSection: number,
   allParagraphs: number[],
-  allSections: number[]
+  allSections: number[],
+  sectionPrefix: string = "มาตรา"
 ): string[] {
   const choices: string[] = [];
   
   // Add the correct answer
-  choices.push(`มาตรา ${targetSection} วรรค ${targetParagraph}`);
+  choices.push(`${sectionPrefix} ${targetSection} วรรค ${targetParagraph}`);
   
   // Get other paragraphs from the same section
   const otherParagraphs = allParagraphs.filter(p => p !== targetParagraph);
   
   // Add other paragraph choices
   for (const p of otherParagraphs.slice(0, 3)) {
-    choices.push(`มาตรา ${targetSection} วรรค ${p}`);
+    choices.push(`${sectionPrefix} ${targetSection} วรรค ${p}`);
   }
   
   // If we don't have enough paragraph choices, add section choices
@@ -123,7 +144,7 @@ function getParagraphChoices(
     
     for (const s of nearestSections) {
       if (choices.length >= 4) break;
-      choices.push(`มาตรา ${s}`);
+      choices.push(`${sectionPrefix} ${s}`);
     }
   }
   
@@ -137,14 +158,15 @@ function getSubsectionChoices(
   targetSubsection: string,
   targetSection: number,
   targetParagraph: number | undefined,
-  allSubsections: string[]
+  allSubsections: string[],
+  sectionPrefix: string = "มาตรา"
 ): string[] {
   const choices: string[] = [];
   
   // Build the correct answer format
   const correctAnswer = targetParagraph !== undefined
-    ? `มาตรา ${targetSection} วรรค ${targetParagraph} อนุ ${targetSubsection}`
-    : `มาตรา ${targetSection} อนุ ${targetSubsection}`;
+    ? `${sectionPrefix} ${targetSection} วรรค ${targetParagraph} อนุ ${targetSubsection}`
+    : `${sectionPrefix} ${targetSection} อนุ ${targetSubsection}`;
   
   choices.push(correctAnswer);
   
@@ -194,8 +216,8 @@ function getSubsectionChoices(
   for (let i = 0; i < neededCount && i < availableSubsections.length; i++) {
     const wrongSubsection = availableSubsections[i];
     const wrongAnswer = targetParagraph !== undefined
-      ? `มาตรา ${targetSection} วรรค ${targetParagraph} อนุ ${wrongSubsection}`
-      : `มาตรา ${targetSection} อนุ ${wrongSubsection}`;
+      ? `${sectionPrefix} ${targetSection} วรรค ${targetParagraph} อนุ ${wrongSubsection}`
+      : `${sectionPrefix} ${targetSection} อนุ ${wrongSubsection}`;
     choices.push(wrongAnswer);
   }
   
@@ -317,15 +339,18 @@ export function generateQuizQuestions(
     let correctAnswer: string;
     let choices: string[];
     
+    const sectionPrefix = parsed.prefix;
+
     if (parsed.subsection !== undefined) {
       // Subsection question
       type = 'subsection';
       correctAnswer = parsed.paragraph !== undefined
-        ? `มาตรา ${parsed.section} วรรค ${parsed.paragraph} อนุ ${parsed.subsection}`
-        : `มาตรา ${parsed.section} อนุ ${parsed.subsection}`;
+        ? `${sectionPrefix} ${parsed.section} วรรค ${parsed.paragraph} อนุ ${parsed.subsection}`
+        : `${sectionPrefix} ${parsed.section} อนุ ${parsed.subsection}`;
       
       // Get all subsections for this section (or section+paragraph)
       const relevantCards = parsedCards.filter(p => 
+        p.parsed.prefix === sectionPrefix &&
         p.parsed.section === parsed.section && 
         p.parsed.paragraph === parsed.paragraph &&
         p.parsed.subsection !== undefined
@@ -336,15 +361,17 @@ export function generateQuizQuestions(
         parsed.subsection,
         parsed.section,
         parsed.paragraph,
-        allSubsections
+        allSubsections,
+        sectionPrefix
       );
     } else if (parsed.paragraph !== undefined) {
       // Paragraph question
       type = 'paragraph';
-      correctAnswer = `มาตรา ${parsed.section} วรรค ${parsed.paragraph}`;
+      correctAnswer = `${sectionPrefix} ${parsed.section} วรรค ${parsed.paragraph}`;
       
       // Get all paragraphs for this section
       const relevantCards = parsedCards.filter(p => 
+        p.parsed.prefix === sectionPrefix &&
         p.parsed.section === parsed.section &&
         p.parsed.paragraph !== undefined &&
         p.parsed.subsection === undefined
@@ -355,15 +382,23 @@ export function generateQuizQuestions(
         parsed.paragraph,
         parsed.section,
         allParagraphs,
-        allSections
+        allSections,
+        sectionPrefix
       );
     } else {
       // Whole section question
       type = 'section';
-      correctAnswer = `มาตรา ${parsed.section}`;
+      correctAnswer = `${sectionPrefix} ${parsed.section}`;
       
-      const sectionChoices = getNearestSectionChoices(parsed.section, allSections);
-      choices = sectionChoices.map(s => `มาตรา ${s}`);
+      // Only consider sections sharing the same prefix for nearest-section choices
+      const prefixSections = [...new Set(
+        parsedCards
+          .filter(p => p.parsed.prefix === sectionPrefix)
+          .map(p => p.parsed.section)
+      )].sort((a, b) => a - b);
+
+      const sectionChoices = getNearestSectionChoices(parsed.section, prefixSections);
+      choices = sectionChoices.map(s => `${sectionPrefix} ${s}`);
     }
     
     // Extract question content

@@ -67,6 +67,7 @@ function formatSubsectionsRecursive(subsections: Subsection[], indentLevel: numb
  * @param paragraphId - Paragraph ID (optional, for multi-paragraph sections)
  * @param hasMultipleParagraphs - Whether section has multiple paragraphs
  * @param dataSourceIndex - Optional data source index
+ * @param sectionPrefix - Optional prefix to use instead of "มาตรา" (e.g., "ข้อ")
  * @returns Array of flashcards for all subsections and their nested subsections
  */
 function generateSubsectionFlashcardsRecursive(
@@ -75,7 +76,8 @@ function generateSubsectionFlashcardsRecursive(
   sectionNumber: string,
   paragraphId: number | null,
   hasMultipleParagraphs: boolean,
-  dataSourceIndex?: number
+  dataSourceIndex?: number,
+  sectionPrefix: string = "มาตรา"
 ): Flashcard[] {
   const flashcards: Flashcard[] = [];
   
@@ -86,10 +88,10 @@ function generateSubsectionFlashcardsRecursive(
     
     if (hasMultipleParagraphs && paragraphId !== null) {
       subsectionId = `${sectionId} วรรค ${paragraphId} อนุ ${subsection.id}`;
-      subsectionQuestion = `มาตรา ${sectionNumber} วรรค ${paragraphId} อนุ ${subsection.id}`;
+      subsectionQuestion = `${sectionPrefix} ${sectionNumber} วรรค ${paragraphId} อนุ ${subsection.id}`;
     } else {
       subsectionId = `${sectionId} อนุ ${subsection.id}`;
-      subsectionQuestion = `มาตรา ${sectionNumber} อนุ ${subsection.id}`;
+      subsectionQuestion = `${sectionPrefix} ${sectionNumber} อนุ ${subsection.id}`;
     }
     
     // Build the subsection answer
@@ -125,7 +127,8 @@ function generateSubsectionFlashcardsRecursive(
         sectionNumber,
         paragraphId,
         hasMultipleParagraphs,
-        dataSourceIndex
+        dataSourceIndex,
+        sectionPrefix
       );
       flashcards.push(...nestedFlashcards);
     }
@@ -171,9 +174,10 @@ const CATEGORY_FILE_MAP: Record<string, string[]> = categoriesConfig.categories.
  * - Individual subsection flashcards
  * @param complexQuestion - Question in complex format (title + content with paragraphs)
  * @param dataSourceIndex - Optional data source index to preserve in generated flashcards
+ * @param sectionPrefix - Optional prefix to use instead of "มาตรา" (e.g., "ข้อ")
  * @returns Array of flashcards
  */
-function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIndex?: number): Flashcard[] {
+function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIndex?: number, sectionPrefix: string = "มาตรา"): Flashcard[] {
   const flashcards: Flashcard[] = [];
 
   // First, create the whole section flashcard (existing behavior)
@@ -211,15 +215,15 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIn
   }
   flashcards.push(wholeSection);
 
-  // Extract section number from complexQuestion.id (e.g., "มาตรา 1" -> "1")
-  const sectionNumber = complexQuestion.id.replace("มาตรา ", "");
+  // Extract section number from complexQuestion.id (e.g., "มาตรา 1" -> "1", "ข้อ 1" -> "1")
+  const sectionNumber = complexQuestion.id.replace(`${sectionPrefix} `, "");
 
   // Create individual flashcards for each paragraph (if multiple paragraphs exist)
   if (complexQuestion.content.paragraphs.length > 1) {
     for (const paragraph of complexQuestion.content.paragraphs) {
       // Create paragraph ID and question
       const paragraphId = `${complexQuestion.id} วรรค ${paragraph.id}`;
-      const paragraphQuestion = `มาตรา ${sectionNumber} วรรค ${paragraph.id}`;
+      const paragraphQuestion = `${sectionPrefix} ${sectionNumber} วรรค ${paragraph.id}`;
       
       // Build the paragraph answer
       const paragraphAnswerParts: string[] = [];
@@ -258,7 +262,8 @@ function mapComplexToSimpleFormat(complexQuestion: ComplexQuestion, dataSourceIn
         sectionNumber,
         hasMultipleParagraphs ? paragraph.id : null,
         hasMultipleParagraphs,
-        dataSourceIndex
+        dataSourceIndex,
+        sectionPrefix
       );
       flashcards.push(...subsectionFlashcards);
     }
@@ -394,9 +399,12 @@ function validateCategory(category: any): asserts category is CategoryStore {
       // Validate complex format
       validateComplexQuestion(question);
       // Map complex format to simple format (now returns array)
-      // Preserve dataSourceIndex if it exists
-      const dataSourceIndex = question.dataSourceIndex;
-      const simpleQuestions = mapComplexToSimpleFormat(question, dataSourceIndex);
+      // Preserve dataSourceIndex and sectionPrefix if they exist
+      // Read sectionPrefix from the raw object before validation narrows the type
+      const rawQuestion = question as any;
+      const dataSourceIndex = rawQuestion.dataSourceIndex as number | undefined;
+      const sectionPrefix = rawQuestion.sectionPrefix as string | undefined;
+      const simpleQuestions = mapComplexToSimpleFormat(question, dataSourceIndex, sectionPrefix);
       transformedQuestions.push(...simpleQuestions);
     } else {
       // Already in simple format, just validate
@@ -491,9 +499,14 @@ export async function fetchCategoryById(
       if (Array.isArray(questions)) {
         // Tag each question with its data source index if this category has multiple data sources
         const hasMultipleDataSources = filenames.length > 1;
-        const questionsWithDataSourceIndex = hasMultipleDataSources 
-          ? questions.map(q => ({ ...q, dataSourceIndex }))
-          : questions;
+        // Resolve the sectionPrefix for this data source (if configured)
+        const dataSourceConfig = originalCategory?.dataSources?.[dataSourceIndex];
+        const sectionPrefix = dataSourceConfig?.sectionPrefix;
+        const questionsWithDataSourceIndex = hasMultipleDataSources
+          ? questions.map(q => ({ ...q, dataSourceIndex, ...(sectionPrefix && { sectionPrefix }) }))
+          : sectionPrefix
+            ? questions.map(q => ({ ...q, sectionPrefix }))
+            : questions;
         allQuestions.push(...questionsWithDataSourceIndex);
       }
     } catch (error) {
