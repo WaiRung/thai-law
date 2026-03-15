@@ -60,7 +60,7 @@ async function loadFilter(filterFilename: string): Promise<QuestionFilter | null
 async function loadAllFilters(): Promise<QuestionFilter[]> {
   const filters: QuestionFilter[] = [];
   
-  for (const category of categoriesConfig.categories) {
+  for (const category of categoriesConfig.categories.filter(c => c.enabled)) {
     let filterFilenames: string[] = [];
 
     // New format: dataSources array (highest priority)
@@ -252,7 +252,7 @@ export async function getCategoryDataSourceSections(
   const descriptionsCache = await getDescriptionsCache();
 
   // Find the category config
-  const categoryConfig = categoriesConfig.categories.find(c => c.id === categoryId);
+  const categoryConfig = categoriesConfig.categories.filter(c => c.enabled).find(c => c.id === categoryId);
   if (!categoryConfig) {
     console.warn(`Category config not found for: ${categoryId}`);
     return null;

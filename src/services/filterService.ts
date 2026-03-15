@@ -46,8 +46,8 @@ async function getCategoryFilterData(categoryId: string): Promise<QuestionFilter
     return loadedFilters.get(categoryId)!;
   }
 
-  // Find the category in config
-  const categoryConfig = categoriesConfig.categories.find(c => c.id === categoryId);
+  // Find the category in config (only enabled categories)
+  const categoryConfig = categoriesConfig.categories.filter(c => c.enabled).find(c => c.id === categoryId);
   if (!categoryConfig) {
     console.log(`Category not found: ${categoryId}`);
     return null;
@@ -196,8 +196,8 @@ export async function loadDataSourceFilter(
     return filterCache.get(cacheKey)!;
   }
 
-  // Find the category in config
-  const categoryConfig = categoriesConfig.categories.find(c => c.id === categoryId);
+  // Find the category in config (only enabled categories)
+  const categoryConfig = categoriesConfig.categories.filter(c => c.enabled).find(c => c.id === categoryId);
   if (!categoryConfig) {
     console.warn(`Category not found: ${categoryId}`);
     return null;

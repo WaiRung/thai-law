@@ -146,7 +146,7 @@ function generateSubsectionFlashcardsRecursive(
  * 3. dataSources array with paired apiFilename/filterFilename/descriptionApiPath (new format)
  * This mapping is loaded from the categories configuration file
  */
-const CATEGORY_FILE_MAP: Record<string, string[]> = categoriesConfig.categories.reduce(
+const CATEGORY_FILE_MAP: Record<string, string[]> = categoriesConfig.categories.filter(category => category.enabled).reduce(
   (map, category) => {
     // New format: dataSources array (highest priority)
     if (category.dataSources && Array.isArray(category.dataSources)) {
@@ -465,7 +465,7 @@ export async function fetchCategoryById(
   }
 
   // Find the original category configuration to preserve metadata
-  const originalCategory = categoriesConfig.categories.find(c => c.id === categoryId);
+  const categoryConfig = categoriesConfig.categories.filter(c => c.enabled).find(c => c.id === categoryId);
 
   // Fetch all API files and merge questions
   const allQuestions: any[] = [];
@@ -500,7 +500,7 @@ export async function fetchCategoryById(
         // Tag each question with its data source index if this category has multiple data sources
         const hasMultipleDataSources = filenames.length > 1;
         // Resolve the sectionPrefix for this data source (if configured)
-        const dataSourceConfig = originalCategory?.dataSources?.[dataSourceIndex];
+        const dataSourceConfig = categoryConfig?.dataSources?.[dataSourceIndex];
         const sectionPrefix = dataSourceConfig?.sectionPrefix;
         const questionsWithDataSourceIndex = hasMultipleDataSources
           ? questions.map(q => ({ ...q, dataSourceIndex, ...(sectionPrefix && { sectionPrefix }) }))
@@ -528,18 +528,18 @@ export async function fetchCategoryById(
   // Preserve metadata from original configuration if available
   const category = {
     id: categoryId,
-    nameTh: originalCategory?.nameTh || categoryId,
-    nameEn: originalCategory?.nameEn || firstFilename
+    nameTh: categoryConfig?.nameTh || categoryId,
+    nameEn: categoryConfig?.nameEn || firstFilename
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" "),
-    icon: originalCategory?.icon || "📚",
+    icon: categoryConfig?.icon || "📚",
     questions: allQuestions,
     // Preserve original metadata fields for proper routing and data source handling
-    ...(originalCategory?.apiFilename && { apiFilename: originalCategory.apiFilename }),
-    ...(originalCategory?.filterFilename && { filterFilename: originalCategory.filterFilename }),
-    ...(originalCategory?.descriptionApiPath && { descriptionApiPath: originalCategory.descriptionApiPath }),
-    ...(originalCategory?.dataSources && { dataSources: originalCategory.dataSources }),
+    ...(categoryConfig?.apiFilename && { apiFilename: categoryConfig.apiFilename }),
+    ...(categoryConfig?.filterFilename && { filterFilename: categoryConfig.filterFilename }),
+    ...(categoryConfig?.descriptionApiPath && { descriptionApiPath: categoryConfig.descriptionApiPath }),
+    ...(categoryConfig?.dataSources && { dataSources: categoryConfig.dataSources }),
   };
 
   validateCategory(category);

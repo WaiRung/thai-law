@@ -262,4 +262,4 @@ function transformCategories(categories: any[]): CategoryStore[] {
  * This makes it easy to maintain and update categories without modifying code
  * Complex format questions are transformed to simple format
  */
-export const categoryStores: CategoryStore[] = transformCategories(categoriesConfig.categories);
+export const categoryStores: CategoryStore[] = transformCategories(categoriesConfig.categories.filter(category => category.enabled));

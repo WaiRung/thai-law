@@ -17,7 +17,7 @@ const DESCRIPTION_API_BASE_URL =
  */
 function buildCategoryApiMap(): Record<string, string[]> {
   const map: Record<string, string[]> = {};
-  for (const category of categoriesConfig.categories) {
+  for (const category of categoriesConfig.categories.filter(c => c.enabled)) {
     // New format: dataSources array (highest priority)
     if (category.dataSources && Array.isArray(category.dataSources)) {
       map[category.id] = category.dataSources

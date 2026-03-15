@@ -24,6 +24,7 @@ declare module '../config/categories.json' {
 
   export interface CategoryConfig {
     id: string;
+    enabled: boolean;
     nameTh: string;
     nameEn: string;
     icon: string;
