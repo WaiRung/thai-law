@@ -2,7 +2,7 @@
   "categories": [
     {
       "id": "กฎหมายมรดก",
-      "enabled": true,
+      "enabled": false,
       "nameTh": "กฎหมายมรดก",
       "nameEn": "Succession Law",
       "path": "succession_law",
@@ -14,7 +14,7 @@
     },
     {
       "id": "กฎหมายวิธีพิจารณาความแพ่ง 2",
-      "enabled": true,
+      "enabled": false,
       "nameTh": "กฎหมายวิธีพิจารณาความแพ่ง 2",
       "nameEn": "Civil Procedure Code 2",
       "path": "civil_procedure_code_2",
@@ -70,7 +70,7 @@
     },
     {
       "id": "กฎหมายวิธีพิจารณาความกฎหมายมหาชน",
-      "enabled": true,
+      "enabled": false,
       "nameTh": "กฎหมายวิธีพิจารณาความกฎหมายมหาชน",
       "nameEn": "Public Law Procedure",
       "path": "public_law_procedure",
@@ -142,7 +142,7 @@
     },
     {
       "id": "กฎหมายรัฐวิสาหกิจ",
-      "enabled": true,
+      "enabled": false,
       "nameTh": "กฎหมายรัฐวิสาหกิจ",
       "nameEn": "Public Enterprise Law",
       "path": "public_enterprise_law",
